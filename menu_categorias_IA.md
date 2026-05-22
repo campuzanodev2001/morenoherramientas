@@ -1,0 +1,501 @@
+# CATÁLOGO DE CATEGORÍAS - MENU WEB
+# Formato optimizado para lectura de IA
+# Estructura: CATEGORÍA PRINCIPAL > Subcategoría > Sub-subcategoría
+
+---
+
+## PRODUCTOS
+
+---
+
+### 1. HERRAMIENTAS PARA MOTORES
+
+#### 1.1 PUESTAS A PUNTO
+Subcategorías por marca de vehículo:
+- ALFA ROMEO
+- BMW-AUDI
+- CHERY-NISSAN
+- CHEVROLET
+- FIAT
+- FORD
+- JEEP-MERCEDES BENZ
+- PEUGEOT-CITROEN
+- RENAULT
+- VOLKSWAGEN
+
+#### 1.2 LLAVES PARA TENSORES DE DISTRIBUCIÓN
+_(sin subcategorías)_
+
+#### 1.3 HERRAMIENTAS PARA TAPAS DE CILINDRO
+_(sin subcategorías)_
+
+#### 1.4 INSTRUMENTOS PARA MEDICIÓN Y AFINACIÓN
+_(sin subcategorías)_
+
+#### 1.5 VARIOS
+_(sin subcategorías)_
+
+---
+
+### 2. MÁQUINAS Y HERRAMIENTAS ELÉCTRICAS, A BATERÍA Y NEUMÁTICAS
+
+#### 2.1 KITS DE HERRAMIENTAS
+_(sin subcategorías)_
+
+#### 2.2 LLAVES DE IMPACTO
+- TODAS
+- A BATERÍA
+- ELÉCTRICAS 220V
+- NEUMÁTICAS
+
+#### 2.3 LLAVES CRIQUE
+- TODAS
+- A BATERÍA
+- NEUMÁTICAS
+
+#### 2.4 ATORNILLADORES / PERCUTORES / TALADROS
+- TODOS
+- ATORNILLADORES A BATERÍA
+- TALADROS ELÉCTRICOS 220V
+- PERCUTORES ENCASTRE SDS
+
+#### 2.5 AMOLADORAS
+- TODAS
+- A BATERÍA
+- ELÉCTRICAS 220V
+
+#### 2.6 MINITORNO / AMOLADORAS RECTAS
+- TODAS
+- ELÉCTRICO 220V
+- NEUMÁTICO
+- A BATERÍA
+
+#### 2.7 HERRAMIENTAS MULTIFUNCIÓN
+- TODAS
+- A BATERÍA
+- ELÉCTRICAS 220V
+
+#### 2.8 COMPRESORES DE AIRE
+_(sin subcategorías)_
+
+#### 2.9 CARGADORES DE BATERÍAS
+_(sin subcategorías)_
+
+#### 2.10 SOLDADORAS
+- TODAS
+- MMA INVERTER (ELECTRODO)
+- MIG
+- TIG
+- TIG-MIG
+- ESTAÑO Y OTROS
+- TUBOS DE GASES Y CONSUMIBLES
+- ACCESORIOS PARA SOLDADORES
+
+#### 2.11 ILUMINACIÓN A BATERÍA Y 12V
+_(sin subcategorías)_
+
+#### 2.12 LIJADORAS / PULIDORAS
+_(sin subcategorías)_
+
+#### 2.13 HIDROLAVADORAS
+_(sin subcategorías)_
+
+#### 2.14 ASPIRADORAS
+_(sin subcategorías)_
+
+#### 2.15 TERMOFUSORAS
+_(sin subcategorías)_
+
+#### 2.16 SACABOLLOS PARA CHAPISTAS
+_(sin subcategorías)_
+
+#### 2.17 HERRAMIENTAS MULTIFUNCIÓN
+_(sin subcategorías — aparece también como ítem independiente)_
+
+#### 2.18 SIERRAS CIRCULARES
+_(sin subcategorías)_
+
+#### 2.19 CALADORAS Y SIERRAS SABLE
+_(sin subcategorías)_
+
+#### 2.20 PISTOLAS DE CALOR
+_(sin subcategorías)_
+
+#### 2.21 EQUIPOS DE PINTURA
+_(sin subcategorías)_
+
+#### 2.22 PARQUE Y JARDÍN
+- BORDEADORAS
+- CORTADORAS DE CÉSPED
+- SOPLADORAS
+- MOTOSIERRAS
+- CORTACERCO
+- TODAS LAS HERRAMIENTAS
+
+#### 2.23 GENERADORES Y GRUPOS ELECTRÓGENOS
+_(sin subcategorías)_
+
+#### 2.24 TORNOS
+_(sin subcategorías)_
+
+#### 2.25 FREZADORAS (ROUTERS)
+_(sin subcategorías)_
+
+#### 2.26 SIERRAS CIRCULARES (2da instancia)
+_(sin subcategorías)_
+
+#### 2.27 CALADORAS Y SIERRAS SABLE (2da instancia)
+_(sin subcategorías)_
+
+#### 2.28 MARTILLOS DEMOLEDORES
+_(sin subcategorías)_
+
+#### 2.29 ACANALADOR DE PARED
+_(sin subcategorías)_
+
+#### 2.30 MEZCLADORAS
+_(sin subcategorías)_
+
+#### 2.31 BOMBAS DE AGUA
+_(sin subcategorías)_
+
+#### 2.32 VIBRADORAS DE PORCELANATO
+_(sin subcategorías)_
+
+#### 2.33 BATERÍAS Y CARGADORES PARA MÁQUINAS
+_(sin subcategorías)_
+
+#### 2.34 OTRAS MÁQUINAS Y HERRAMIENTAS
+_(sin subcategorías)_
+
+---
+
+### 3. HERRAMIENTAS DE MANO
+
+#### 3.1 CAJAS, KITS DE TUBOS Y PUNTAS
+_(sin subcategorías)_
+
+#### 3.2 TUBOS POR UNIDAD
+- ENCASTRE DE 1/4 CORTOS
+- ENCASTRE DE 1/4 LARGOS
+- ENCASTRE DE 1/4 TORX
+- ENCASTRE DE 1/2 ESTRIADOS
+- ENCASTRE DE 1/2 HEXAGONAL
+- ENCASTRE DE 1/2 EN PULGADAS (SAE)
+- ENCASTRE DE 1/2 LARGOS
+- ENCASTRE DE 1/2 TORX
+- ENCASTRE DE 1/2 MULTIESTRÍA
+- ENCASTRE DE 1/2 ALLEN
+- ENCASTRE DE 1/2 ALTO IMPACTO
+- ENCASTRE DE 3/8
+- ENCASTRE DE 3/4 ESTRIADOS
+- ENCASTRE DE 3/4 HEXAGONAL
+- SACABUJÍAS
+- MOVIMIENTOS UNIVERSALES
+- PROLONGACIONES O ALARGUES
+- ADAPTADORES
+
+#### 3.3 PUNTAS
+- PUNTAS (TORX, ALLEN, MULTI, RIBE)
+- PUNTAS PARA ATORNILLADOR
+
+#### 3.4 JUEGOS DE LLAVES
+_(sin subcategorías)_
+
+#### 3.5 LLAVES SUELTAS
+- COMBINADAS MILIMÉTRICAS
+- COMBINADAS EN PULGADAS (SAE)
+- COMBINADAS CON CRIQUE
+- LLAVES CORTAS
+- LLAVES PARA POLY-V (PLANAS LARGAS)
+- LLAVES "T" CORTAS
+- LLAVES "T" LARGAS
+- LLAVES ALLEN
+- LLAVES TORX
+- LLAVES FRANCESAS
+- LLAVES DE CAÑO (STILSON)
+- LLAVES ESPECIALES
+
+#### 3.6 PINZAS Y ALICATES
+- PINZAS
+- ALICATES
+- PICOS DE LORO
+- PINZAS SEGER
+- PINZAS ESPECIALES
+
+#### 3.7 DESTORNILLADORES
+- JUEGOS DE DESTORNILLADORES
+- DESTORNILLADORES POR UNIDAD
+- DESTORNILLADORES ESPECIALES
+
+#### 3.8 MAZAS Y MARTILLOS
+- MAZAS Y MARTILLOS
+- MARTILLOS PARA CHAPISTAS
+
+#### 3.9 LLAVES CRIQUE (1/4" - 3/8" - 1/2" - 3/4" - 1")
+- ENCASTRE DE 1/4
+- ENCASTRE DE 3/8
+- ENCASTRE DE 1/2
+- ENCASTRE DE 3/4
+
+#### 3.10 PALANCAS DE FUERZA
+- ENCASTRE DE 1/4
+- ENCASTRE DE 3/8
+- ENCASTRE DE 1/2
+- ENCASTRE DE 3/4
+- ENCASTRE DE 1"
+
+#### 3.11 EXTRACTORES
+_(sin subcategorías)_
+
+#### 3.12 TUBOS ESPECIALES
+_(sin subcategorías)_
+
+#### 3.13 VARIOS
+_(sin subcategorías)_
+
+---
+
+### 4. HERRAMIENTAS DE PRECISIÓN Y MEDICIÓN
+
+#### 4.1 PARA LA MECÁNICA
+- SONDAS
+- CALIBRES
+- TELESCOPINES
+- MICRÓMETROS
+- ALESÓMETROS
+- GONIÓMETROS
+- LÁMPARAS DE PUESTA A PUNTO
+- MEDIDORES DE TEMPERATURA
+- MULTÍMETROS-TESTERS
+- REGLAS DE PLANITUD
+- PINZAS AMPEROMÉTRICAS
+
+#### 4.2 PARA LA CONSTRUCCIÓN
+- CINTAS MÉTRICAS
+- NIVELES LASER
+- MEDIDOR DE DISTANCIA LASER
+- MULTÍMETROS-TESTERS
+- EMPERÍMETROS
+- PROVADORES DE VOLTAJES
+- METROS PLEGABLES
+- ESCUADRAS
+- REGLAS
+- DETECTORES DE TEMPERATURA
+- DETECTOR DE MATERIALES
+
+---
+
+### 5. HERRAMIENTAS NEUMÁTICAS
+_(sin subcategorías)_
+
+---
+
+### 6. INYECCIÓN ELECTRÓNICA
+- TODOS
+- BANCOS DE PRUEBA Y LIMPIEZA DE INYECTORES
+- BATAS DE ULTRASONIDO
+- MANÓMETRO DE PRESIÓN COMBUSTIBLE
+- PROBADORES - GENERADORES - SIMULADORES
+- PUNTAS LÓGICAS
+- VARIOS
+
+---
+
+### 7. INYECCIÓN DIESEL
+_(sin subcategorías)_
+
+---
+
+### 8. SCANNERS Y DIAGNÓSTICO
+_(sin subcategorías)_
+
+---
+
+### 9. LIBROS Y SOFTWARES PARA TALLER
+_(sin subcategorías)_
+
+---
+
+### 10. MOBILIARIO Y EQUIPAMIENTOS PARA TALLERES
+- TODOS
+- TABLEROS
+- BANCOS DE TRABAJO
+- CAJONERAS / MESAS RODANTES
+- ORGANIZADORES - ARMARIOS - CAJAS - ALACENAS
+- ILUMINACIÓN (LÁMPARAS Y PORTÁTILES)
+- RECOLECTORAS DE LÍQUIDOS Y FLUIDOS
+- BATAS DE LAVADO
+- BANCOS Y SOPORTES PARA MOTORES
+- MORSAS
+- CABALLETES
+- OTROS
+
+---
+
+### 11. HERRAMIENTAS HIDRÁULICAS
+- TODAS
+- CRIQUES
+- PRENSAS
+- VARIOS
+
+---
+
+### 12. HERRAMIENTAS PARA CHAPA Y PINTURA
+- MARTILLOS
+- AGUANTADORES
+- SACABOLLOS Y ACCESORIOS
+- PALANCAS Y BARRETAS
+- PISTOLAS - SOPLETES PARA PINTAR
+- LIJADORAS - PULIDORAS
+- SOLDADORAS
+- TUBOS PARA GASES Y REGULADORES
+- PISTOLAS DE CALOR
+- PINZAS DE PRESIÓN
+- EXPANSORES
+- COMPRESORES
+- CONSUMIBLES - LIJAS Y OTROS
+
+---
+
+### 13. TREN DELANTERO Y SUSPENSIÓN
+_(sin subcategorías)_
+
+---
+
+### 14. FRENOS Y EMBRAGUES
+_(sin subcategorías)_
+
+---
+
+### 15. LUBRICENTRO
+_(sin subcategorías)_
+
+---
+
+### 16. GOMERÍA
+_(sin subcategorías)_
+
+---
+
+### 17. DETAILING (ESTÉTICA VEHICULAR)
+_(sin subcategorías)_
+
+---
+
+### 18. HERRAMIENTAS PARA MOTOS
+_(sin subcategorías)_
+
+---
+
+### 19. INSERTOS
+- TODOS
+- INSERTOS EN KIT (CON MECHA Y MACHO)
+- INSERTOS SOLO ROSCA (SIN MECHA Y MACHO)
+
+---
+
+### 20. ARTÍCULOS PARA EL HOGAR Y EL JARDÍN
+_(sin subcategorías)_
+
+---
+
+### 21. HERRAMIENTAS PARA LA CONSTRUCCIÓN
+_(sin subcategorías)_
+
+---
+
+### 22. HERRAMIENTAS Y ACCESORIOS UNIVERSALES
+_(sin subcategorías)_
+
+---
+
+### 23. ELEVADORES (AUTOS Y MOTOS)
+_(sin subcategorías)_
+
+---
+
+### 24. TERMOS Y MATES
+_(sin subcategorías)_
+
+---
+
+### 25. CONSUMIBLES PARA LA INDUSTRIA
+
+#### 25.1 FORMAJUNTAS Y PEGAMENTOS
+_(sin subcategorías)_
+
+#### 25.2 SILICONAS
+_(sin subcategorías)_
+
+#### 25.3 AEROSOLES LUBRICANTES Y OTROS
+_(sin subcategorías)_
+
+#### 25.4 GRASAS Y ACEITES
+_(sin subcategorías)_
+
+#### 25.5 ARTÍCULOS PARA LA LIMPIEZA
+_(sin subcategorías)_
+
+#### 25.6 GUANTES
+_(sin subcategorías)_
+
+#### 25.7 PRECINTOS
+_(sin subcategorías)_
+
+#### 25.8 CINTAS AISLADORAS - CINTAS TEFLON
+_(sin subcategorías)_
+
+#### 25.9 CLIPS PLÁSTICOS - GRAMPAS - CLAVOS
+_(sin subcategorías)_
+
+#### 25.10 SELLADORES ROSCAS - TRABASIL
+_(sin subcategorías)_
+
+#### 25.11 LIJAS
+_(sin subcategorías)_
+
+#### 25.12 REMACHES ROSCADOS
+_(sin subcategorías)_
+
+#### 25.13 DISCOS DE CORTE - METAL - PARED - MADERA
+_(sin subcategorías)_
+
+#### 25.14 CEPILLOS PARA AMOLADORA Y TALADRO
+_(sin subcategorías)_
+
+#### 25.15 ACCESORIOS PARA DREMEL
+_(sin subcategorías)_
+
+#### 25.16 CEPILLOS DE ALAMBRE
+- TODOS
+- CEPILLOS DE MANO
+- CEPILLOS PARA AMOLADORAS
+- CEPILLOS PARA TALADROS
+
+#### 25.17 MECHAS
+- TODAS
+- JUEGOS DE MECHAS
+- MECHAS INDIVIDUALES PARA ACERO
+- MECHAS INDIVIDUALES PARA MAMPOSTERÍA
+- MECHAS INDIVIDUALES PARA MADERA
+- MECHAS COPA Y ADAPTADORES
+- MECHAS ESCALONADAS
+
+---
+
+## RESUMEN ESTADÍSTICO
+
+| Dato | Valor |
+|------|-------|
+| Total de categorías principales | 25 |
+| Categorías con subcategorías | 14 |
+| Categorías sin subcategorías | 11 |
+| Enfoque principal del catálogo | Herramientas industriales, automotriz y construcción |
+
+## NOTAS PARA LA IA
+
+- El catálogo pertenece a una ferretería/distribuidor de herramientas profesionales.
+- Foco predominante: sector automotriz (mecánica, chapa, pintura, diagnóstico) y construcción.
+- Algunas categorías están duplicadas en el menú original (ej: HERRAMIENTAS MULTIFUNCIÓN, SIERRAS CIRCULARES, CALADORAS Y SIERRAS SABLE) posiblemente por aparecer en distintos contextos de navegación.
+- Las categorías "TODOS / TODAS" dentro de las subcategorías funcionan como filtro agregador que muestra todos los productos del grupo.

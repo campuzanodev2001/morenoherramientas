@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__stitch__get_screen",
+      "mcp__stitch__get_project",
+      "Bash(curl -L \"https://lh3.googleusercontent.com/aida/ADBb0uhrZlMUDBwFVp9JC44LJNYDmjG_zuuuAsiCE7UOmX-BlCc40h5G17PWX150-lqBusCH20G8rmT6UhdRjXQj3NwBuP5TR-_QHBUgnMTPR8lZ8b45VHwt2wvgnAhnhcWaWG67iVWUzwsj4m3QKzBoiNuJq8PxVuWRFQPot-su2irKjZgGtLOkPyJc6H4iCyOx2fOq1ms3j6ZlCkXqykihfFuK0HaLfFalZK-aOHTVNFV8d4MRKiyIIEZ5QxM\" -o \"D:/dev/morenoherramientas/stitch-automotriz-homepage.png\")",
+      "Bash(curl -L \"https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ7Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpaCiVodG1sXzAwMDY1MjVhOWFkZDBlY2EwNTQ5ZDFmMGUxMDIzZmE5EgsSBxC7lI284BIYAZIBIwoKcHJvamVjdF9pZBIVQhM1NDI3MTc3MzQ5NjQ2MDQwNzMz&filename=&opi=89354086\" -o \"D:/dev/morenoherramientas/stitch-automotriz-homepage.html\")",
+      "Bash(npm run *)",
+      "Bash(Read \"C:\\\\Users\\\\Danii\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--dev-morenoherramientas\\\\b35cc6bb-c8bc-4c6c-8452-a5bae4522a00\\\\tasks\\\\bx7qlbzyq.output\")",
+      "Bash(curl *)",
+      "Bash(npx playwright *)"
+    ]
+  }
+}

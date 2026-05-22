@@ -1,0 +1,265 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Moreno Herramientas</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#b9c3ff",
+                        "inverse-on-surface": "#f0f0f3",
+                        "primary-fixed": "#dde1ff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e8e8ea",
+                        "surface-container": "#eeeef0",
+                        "on-background": "#1a1c1e",
+                        "tertiary": "#331100",
+                        "on-secondary-fixed": "#410004",
+                        "surface": "#f9f9fc",
+                        "surface-container-low": "#f3f3f6",
+                        "secondary": "#b81021",
+                        "on-secondary-fixed-variant": "#930014",
+                        "surface-dim": "#dadadc",
+                        "primary": "#1B2A6B",
+                        "background": "#f9f9fc",
+                        "surface-variant": "#e2e2e5",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffdbca",
+                        "secondary-fixed": "#ffdad7",
+                        "on-primary-fixed": "#001257",
+                        "secondary-container": "#dc3036",
+                        "tertiary-container": "#542100",
+                        "on-tertiary-fixed-variant": "#713713",
+                        "on-secondary-container": "#fffbff",
+                        "on-surface-variant": "#454650",
+                        "primary-container": "#1b2a6b",
+                        "surface-bright": "#f9f9fc",
+                        "inverse-surface": "#2f3133",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "on-tertiary-container": "#d2855b",
+                        "on-primary-container": "#8694db",
+                        "outline-variant": "#c6c5d2",
+                        "outline": "#767681",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#4c5a9d",
+                        "tertiary-fixed-dim": "#ffb68f",
+                        "primary-fixed-dim": "#b9c3ff",
+                        "on-tertiary-fixed": "#331100",
+                        "on-surface": "#1a1c1e",
+                        "surface-container-highest": "#e2e2e5",
+                        "on-primary-fixed-variant": "#344283",
+                        "accent-red": "#C8202A"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "margin-desktop": "64px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "price-lg": ["Poppins", "sans-serif"],
+                        "label-md": ["Poppins", "sans-serif"],
+                        "body-lg": ["Poppins", "sans-serif"],
+                        "headline-md": ["Poppins", "sans-serif"],
+                        "headline-lg-mobile": ["Poppins", "sans-serif"],
+                        "body-md": ["Poppins", "sans-serif"],
+                        "display-lg": ["Poppins", "sans-serif"],
+                        "headline-lg": ["Poppins", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "price-lg": ["28px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "600", "letterSpacing": "0.05em" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "800" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "800" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "900" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; }
+        body { min-height: max(884px, 100dvh); }
+    </style>
+</head>
+<body class="bg-background text-on-background max-w-[390px] mx-auto overflow-x-hidden pt-16 pb-16">
+<!-- TopAppBar -->
+<header class="bg-surface-container-lowest fixed top-0 w-full z-50 border-b-2 border-primary max-w-[390px]">
+<div class="flex justify-between items-center px-margin-mobile h-16 w-full">
+<button class="text-primary transition-colors duration-200 hover:bg-surface-container rounded-none p-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary truncate px-2 uppercase tracking-tighter">Moreno Herramientas</h1>
+<button class="text-primary transition-colors duration-200 hover:bg-surface-container rounded-none p-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">shopping_cart</span>
+</button>
+</div>
+</header>
+<main class="flex flex-col gap-[32px]">
+<!-- Hero Section -->
+<section class="relative bg-cover bg-center px-margin-mobile py-[48px] flex flex-col justify-end min-h-[450px]" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCO_LAsdBrffs-Kq3gJVnxK7aX8bAmBBkbWGo7xXdkHhH1JcnGiVDK39vS3H29lEzSXhUqksdlEH1iCkL7rJQ6MqlyNz4aVOsncK-fyQq5dI3ymUVYlysSIW8U61C0apkUihGCNh8gb0Lya2fljGjPFsMbPYYbWlWAuUM02vGvgHD-0RjVdNFwcYsmSvHFJ0zd2uILSeQLwJ5cREPzGfGQ_8EKcsGCOlmdVBI9o1WvnIlmbMEPhMqWWOYdg7s9G9EQyzo-1vIlSAfY');">
+<div class="absolute inset-0 bg-primary/60 z-0"></div>
+<div class="relative z-10 flex flex-col gap-gutter">
+<h2 class="font-headline-lg-mobile text-[36px] leading-[1.1] text-on-primary font-black tracking-tighter uppercase text-center drop-shadow-lg">Todo para tu taller en un solo lugar</h2>
+<div class="flex flex-col gap-unit">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-4 bg-surface-container-lowest text-on-surface border-2 border-primary rounded-none font-body-md text-body-md focus:outline-none focus:border-accent-red" placeholder="Buscá herramientas, repuestos..." type="text">
+</div>
+<button class="bg-accent-red text-on-primary font-label-md text-label-md py-4 px-4 w-full rounded-none flex items-center justify-center gap-2 uppercase tracking-widest font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]">
+                        Buscar productos <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Categories Section -->
+<section class="px-margin-mobile flex flex-col gap-margin-mobile">
+<h3 class="font-headline-md text-headline-md text-on-background font-black uppercase border-l-4 border-accent-red pl-3">Categorías</h3>
+<div class="grid grid-cols-2 gap-2">
+<!-- Category 1 -->
+<div class="bg-[#111111] aspect-square relative p-4 flex flex-col justify-between group cursor-pointer border border-transparent hover:border-accent-red transition-all duration-300 rounded-none">
+<span class="font-label-md text-label-md text-on-primary font-black uppercase">Herramientas</span>
+<span class="material-symbols-outlined text-accent-red self-end group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<!-- Category 2 -->
+<div class="bg-[#111111] aspect-square relative p-4 flex flex-col justify-between group cursor-pointer border border-transparent hover:border-accent-red transition-all duration-300 rounded-none">
+<span class="font-label-md text-label-md text-on-primary font-black uppercase">Tornillería</span>
+<span class="material-symbols-outlined text-accent-red self-end group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<!-- Category 3 -->
+<div class="bg-[#111111] aspect-square relative p-4 flex flex-col justify-between group cursor-pointer border border-transparent hover:border-accent-red transition-all duration-300 rounded-none">
+<span class="font-label-md text-label-md text-on-primary font-black uppercase">Plomería</span>
+<span class="material-symbols-outlined text-accent-red self-end group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<!-- Category 4 -->
+<div class="bg-[#111111] aspect-square relative p-4 flex flex-col justify-between group cursor-pointer border border-transparent hover:border-accent-red transition-all duration-300 rounded-none">
+<span class="font-label-md text-label-md text-on-primary font-black uppercase">Electricidad</span>
+<span class="material-symbols-outlined text-accent-red self-end group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<!-- Category 5 -->
+<div class="bg-[#111111] aspect-square relative p-4 flex flex-col justify-between group cursor-pointer border border-transparent hover:border-accent-red transition-all duration-300 rounded-none">
+<span class="font-label-md text-label-md text-on-primary font-black uppercase">Pintura</span>
+<span class="material-symbols-outlined text-accent-red self-end group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<!-- Category 6 -->
+<div class="bg-[#111111] aspect-square relative p-4 flex flex-col justify-between group cursor-pointer border border-transparent hover:border-accent-red transition-all duration-300 rounded-none">
+<span class="font-label-md text-label-md text-on-primary font-black uppercase">Construcción</span>
+<span class="material-symbols-outlined text-accent-red self-end group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+<button class="mt-2 w-full border-2 border-primary text-primary font-label-md text-label-md py-4 uppercase font-black tracking-widest hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2">
+                Ver todas las categorías <span class="material-symbols-outlined">grid_view</span>
+</button>
+</section>
+<!-- Featured Products -->
+<section class="px-margin-mobile flex flex-col gap-margin-mobile">
+<h3 class="font-headline-md text-headline-md text-on-background font-black uppercase border-l-4 border-accent-red pl-3">Productos destacados</h3>
+<div class="flex flex-col gap-2">
+<!-- Product 1 -->
+<div class="bg-[#111111] flex items-center p-3 gap-4 cursor-pointer hover:bg-[#1a1a1a] transition-all border-l-4 border-transparent hover:border-accent-red rounded-none">
+<div class="w-[80px] h-[80px] bg-surface-variant flex-shrink-0 relative overflow-hidden rounded-none border border-white/10">
+<img alt="TALADRO PERCUTOR" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP5vKXLEfwXJr6elYHcp6fcMyMZmf1DSQLMRAjoFGdehb2LtWRp0svm44Xe7C80C4VNHdYhvWg6k0tA7CSiY1I-s0g9EwQx6hsAb6RqwcP7IzquHfo1ObAEqpf-S_L9kCWs05BniiRZ3dqRR4LJ8YTCSYD8TkQsC72-88yQmiptolrH5d7k4hJ4zl9N6BAR4b1L7n1SGFdz_AB9-A8T1vxq_n4cKfPDGOKbL3e3ody2N--SZXgGvYa9dRt7HxWnKw0oBJRRti8sF8">
+</div>
+<div class="flex flex-col flex-grow">
+<span class="font-label-md text-[12px] text-on-primary uppercase font-bold opacity-80">Herramientas Eléctricas</span>
+<span class="font-label-md text-label-md text-on-primary line-clamp-1 uppercase">Taladro Percutor 20V MAX</span>
+<span class="font-price-lg text-price-lg text-accent-red mt-1">$145.000</span>
+</div>
+<span class="material-symbols-outlined text-on-primary flex-shrink-0">chevron_right</span>
+</div>
+<!-- Product 2 -->
+<div class="bg-[#111111] flex items-center p-3 gap-4 cursor-pointer hover:bg-[#1a1a1a] transition-all border-l-4 border-transparent hover:border-accent-red rounded-none">
+<div class="w-[80px] h-[80px] bg-surface-variant flex-shrink-0 relative overflow-hidden rounded-none border border-white/10">
+<img alt="AMOLADORA ANGULAR" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD87YL24R8qpM65394RJT1PJhYsfrbwDKwoKSDP4NWmxEk8ZuRYh70GMxRcu-YR7xkAuEdeLiZGrLzPTqaXDb-DVp83-c40rUv8RZvVMKFlE0rvtq_gA0XGt1vPnE15IIhcX8XZBIOdiaUr8e-7nqTzdvWoGkDM_gPi1VDYQlRqeV3ggLdIVm_cupDjslqkgdoLrplkF0-6CcKkUC4jocX-VwyhzRzv3UeJYxpBLEQ6AozDmFn6rpO4b-IlBvt0e9de9Xymtf-4vqE">
+</div>
+<div class="flex flex-col flex-grow">
+<span class="font-label-md text-[12px] text-on-primary uppercase font-bold opacity-80">Maquinaria</span>
+<span class="font-label-md text-label-md text-on-primary line-clamp-1 uppercase">Amoladora Angular 115MM</span>
+<span class="font-price-lg text-price-lg text-accent-red mt-1">$89.900</span>
+</div>
+<span class="material-symbols-outlined text-on-primary flex-shrink-0">chevron_right</span>
+</div>
+<!-- Product 3 -->
+<div class="bg-[#111111] flex items-center p-3 gap-4 cursor-pointer hover:bg-[#1a1a1a] transition-all border-l-4 border-transparent hover:border-accent-red rounded-none">
+<div class="w-[80px] h-[80px] bg-surface-variant flex-shrink-0 relative overflow-hidden rounded-none border border-white/10">
+<img alt="MEDIDOR LÁSER" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD9bl9bTcId3iiVjnMEY1BhEpaCbAbZi0F8pDWKwXhDWRxnypBmMf6eeEd08dM50bb0BXLP2vLn49yH8bAD-KECVTbHMIRZdioHS0vohVRXuxRWFq98cvvjvX8gm0p4igPZi27kmVuezMt3ZeXctzi8PHL78ArWsVyJTQz7s0G7L7wozUY7au3gmpd3Y7istIHXel57ThjXJL73XVBNfHLN_2YthWKynDW25X2sdbOqCAm5K84ugNKMbLAK5RHVbL93aQLl4_C7Bw">
+</div>
+<div class="flex flex-col flex-grow">
+<span class="font-label-md text-[12px] text-on-primary uppercase font-bold opacity-80">Medición</span>
+<span class="font-label-md text-label-md text-on-primary line-clamp-1 uppercase">Medidor Láser 50M</span>
+<span class="font-price-lg text-price-lg text-accent-red mt-1">$65.500</span>
+</div>
+<span class="material-symbols-outlined text-on-primary flex-shrink-0">chevron_right</span>
+</div>
+<!-- Product 4 -->
+<div class="bg-[#111111] flex items-center p-3 gap-4 cursor-pointer hover:bg-[#1a1a1a] transition-all border-l-4 border-transparent hover:border-accent-red rounded-none">
+<div class="w-[80px] h-[80px] bg-surface-variant flex-shrink-0 relative overflow-hidden rounded-none border border-white/10">
+<img alt="SIERRA CIRCULAR" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXopAoxj3i4_EGa5Wg9j-XI4QWiNxCkky2w29FMXr8c6xuLtuLe9aAfyw05ixWldZefkSOCj28vdsWacnzir-cPLQ7vzNsKaewvJWN24kapDtl8IGmP_UJcb5_3wCSe6chYeDs9tTNAII6a2mIh0oei2khYVD43SjzWI3hobUWTmn3uoH8QYbq4YNwdt4iK0s2U4KCVRRP60mDKXZuNSwSs7hJ9OqwpvBoh1WmYVM8C3qPtBIC4onJXG90gcTLgF5EgjmeeSjng70">
+</div>
+<div class="flex flex-col flex-grow">
+<span class="font-label-md text-[12px] text-on-primary uppercase font-bold opacity-80">Carpintería</span>
+<span class="font-label-md text-label-md text-on-primary line-clamp-1 uppercase">Sierra Circular 7 1/4"</span>
+<span class="font-price-lg text-price-lg text-accent-red mt-1">$112.000</span>
+</div>
+<span class="material-symbols-outlined text-on-primary flex-shrink-0">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- WhatsApp CTA -->
+<section class="bg-accent-red p-[32px] flex flex-col gap-margin-mobile text-center items-center rounded-none relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-20">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 1;">build</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-primary font-black uppercase tracking-tight relative z-10">¿Necesitás asesoramiento técnico?</h3>
+<p class="font-body-md text-body-md text-on-primary font-medium relative z-10">Escribinos por WhatsApp y un especialista te ayudará a elegir la herramienta adecuada.</p>
+<button class="bg-primary text-on-primary font-black text-label-md py-4 px-8 w-full rounded-none uppercase tracking-widest mt-2 relative z-10 shadow-lg flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">chat</span> Escribinos ahora
+            </button>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-primary w-full mt-[32px] rounded-none border-t-4 border-accent-red">
+<div class="flex flex-col p-margin-mobile gap-gutter w-full">
+<h2 class="font-headline-md text-headline-md font-black text-on-primary uppercase tracking-tighter">Moreno Herramientas</h2>
+<div class="grid grid-cols-2 gap-4">
+<nav class="flex flex-col gap-3">
+<a class="font-label-md text-label-md text-white/80 transition-all duration-300 hover:text-white uppercase" href="#">Herramientas</a>
+<a class="font-label-md text-label-md text-white/80 transition-all duration-300 hover:text-white uppercase" href="#">Marcas</a>
+<a class="font-label-md text-label-md text-white/80 transition-all duration-300 hover:text-white uppercase" href="#">Ofertas</a>
+</nav>
+<nav class="flex flex-col gap-3">
+<a class="font-label-md text-label-md text-white/80 transition-all duration-300 hover:text-white uppercase" href="#">Mi Cuenta</a>
+<a class="font-label-md text-label-md text-white/80 transition-all duration-300 hover:text-white uppercase" href="#">Contacto</a>
+<a class="font-label-md text-label-md text-white/80 transition-all duration-300 hover:text-white uppercase" href="#">Sucursales</a>
+</nav>
+</div>
+<div class="mt-4 pt-4 border-t border-white/10">
+<p class="font-body-md text-[12px] text-white/60">© 2024 Moreno Herramientas. Calidad y Precisión Industrial.</p>
+</div>
+</div>
+</footer>
+<!-- BottomNavBar -->
+
+
+
+</body></html>
