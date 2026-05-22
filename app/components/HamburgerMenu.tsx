@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 
-type Subcategory = { name: string }
+type Item = { name: string }
+type Subcategory = { name: string; items?: Item[] }
 type Category = { name: string; subcategories?: Subcategory[] }
 type Group = { name: string; categories: Category[] }
 
@@ -13,7 +14,21 @@ const menuData: Group[] = [
       {
         name: 'Herramientas para motores',
         subcategories: [
-          { name: 'Puestas a punto' },
+          {
+            name: 'Puestas a punto',
+            items: [
+              { name: 'Alfa Romeo' },
+              { name: 'BMW-Audi' },
+              { name: 'Chery-Nissan' },
+              { name: 'Chevrolet' },
+              { name: 'Fiat' },
+              { name: 'Ford' },
+              { name: 'Jeep-Mercedes Benz' },
+              { name: 'Peugeot-Citroën' },
+              { name: 'Renault' },
+              { name: 'Volkswagen' },
+            ],
+          },
           { name: 'Llaves para tensores de distribución' },
           { name: 'Herramientas para tapas de cilindro' },
           { name: 'Instrumentos para medición y afinación' },
@@ -67,15 +82,72 @@ const menuData: Group[] = [
         name: 'Máquinas y herramientas eléctricas',
         subcategories: [
           { name: 'Kits de herramientas' },
-          { name: 'Llaves de impacto' },
-          { name: 'Llaves crique eléctricas' },
-          { name: 'Atornilladores / Percutores / Taladros' },
-          { name: 'Amoladoras' },
-          { name: 'Minitorno / Amoladoras rectas' },
-          { name: 'Herramientas multifunción' },
+          {
+            name: 'Llaves de impacto',
+            items: [
+              { name: 'Todas' },
+              { name: 'A batería' },
+              { name: 'Eléctricas 220V' },
+              { name: 'Neumáticas' },
+            ],
+          },
+          {
+            name: 'Llaves crique eléctricas',
+            items: [
+              { name: 'Todas' },
+              { name: 'A batería' },
+              { name: 'Neumáticas' },
+            ],
+          },
+          {
+            name: 'Atornilladores / Percutores / Taladros',
+            items: [
+              { name: 'Todos' },
+              { name: 'Atornilladores a batería' },
+              { name: 'Taladros eléctricos 220V' },
+              { name: 'Percutores encastre SDS' },
+            ],
+          },
+          {
+            name: 'Amoladoras',
+            items: [
+              { name: 'Todas' },
+              { name: 'A batería' },
+              { name: 'Eléctricas 220V' },
+            ],
+          },
+          {
+            name: 'Minitorno / Amoladoras rectas',
+            items: [
+              { name: 'Todas' },
+              { name: 'Eléctrico 220V' },
+              { name: 'Neumático' },
+              { name: 'A batería' },
+            ],
+          },
+          {
+            name: 'Herramientas multifunción',
+            items: [
+              { name: 'Todas' },
+              { name: 'A batería' },
+              { name: 'Eléctricas 220V' },
+            ],
+          },
           { name: 'Compresores de aire' },
           { name: 'Cargadores de baterías' },
-          { name: 'Soldadoras' },
+          {
+            name: 'Soldadoras',
+            items: [
+              { name: 'Todas' },
+              { name: 'MMA Inverter (electrodo)' },
+              { name: 'MIG' },
+              { name: 'TIG' },
+              { name: 'TIG-MIG' },
+              { name: 'Estaño y otros' },
+              { name: 'Tubos de gases y consumibles' },
+              { name: 'Accesorios para soldadores' },
+            ],
+          },
           { name: 'Lijadoras / Pulidoras' },
           { name: 'Hidrolavadoras' },
           { name: 'Sierras circulares' },
@@ -105,15 +177,98 @@ const menuData: Group[] = [
         name: 'Herramientas de mano',
         subcategories: [
           { name: 'Cajas, kits de tubos y puntas' },
-          { name: 'Tubos por unidad' },
-          { name: 'Puntas (Torx, Allen, Multi, Ribe)' },
+          {
+            name: 'Tubos por unidad',
+            items: [
+              { name: 'Encastre 1/4 cortos' },
+              { name: 'Encastre 1/4 largos' },
+              { name: 'Encastre 1/4 Torx' },
+              { name: 'Encastre 1/2 estriados' },
+              { name: 'Encastre 1/2 hexagonal' },
+              { name: 'Encastre 1/2 en pulgadas (SAE)' },
+              { name: 'Encastre 1/2 largos' },
+              { name: 'Encastre 1/2 Torx' },
+              { name: 'Encastre 1/2 multiestría' },
+              { name: 'Encastre 1/2 Allen' },
+              { name: 'Encastre 1/2 alto impacto' },
+              { name: 'Encastre 3/8' },
+              { name: 'Encastre 3/4 estriados' },
+              { name: 'Encastre 3/4 hexagonal' },
+              { name: 'Sacabujías' },
+              { name: 'Movimientos universales' },
+              { name: 'Prolongaciones / Alargues' },
+              { name: 'Adaptadores' },
+            ],
+          },
+          {
+            name: 'Puntas (Torx, Allen, Multi, Ribe)',
+            items: [
+              { name: 'Puntas Torx, Allen, Multi, Ribe' },
+              { name: 'Puntas para atornillador' },
+            ],
+          },
           { name: 'Juegos de llaves' },
-          { name: 'Llaves sueltas' },
-          { name: 'Pinzas y alicates' },
-          { name: 'Destornilladores' },
-          { name: 'Mazas y martillos' },
-          { name: 'Llaves crique' },
-          { name: 'Palancas de fuerza' },
+          {
+            name: 'Llaves sueltas',
+            items: [
+              { name: 'Combinadas milimétricas' },
+              { name: 'Combinadas en pulgadas (SAE)' },
+              { name: 'Combinadas con crique' },
+              { name: 'Llaves cortas' },
+              { name: 'Llaves para Poly-V (planas largas)' },
+              { name: 'Llaves "T" cortas' },
+              { name: 'Llaves "T" largas' },
+              { name: 'Llaves Allen' },
+              { name: 'Llaves Torx' },
+              { name: 'Llaves francesas' },
+              { name: 'Llaves de caño (Stilson)' },
+              { name: 'Llaves especiales' },
+            ],
+          },
+          {
+            name: 'Pinzas y alicates',
+            items: [
+              { name: 'Pinzas' },
+              { name: 'Alicates' },
+              { name: 'Picos de loro' },
+              { name: 'Pinzas Seger' },
+              { name: 'Pinzas especiales' },
+            ],
+          },
+          {
+            name: 'Destornilladores',
+            items: [
+              { name: 'Juegos de destornilladores' },
+              { name: 'Destornilladores por unidad' },
+              { name: 'Destornilladores especiales' },
+            ],
+          },
+          {
+            name: 'Mazas y martillos',
+            items: [
+              { name: 'Mazas y martillos' },
+              { name: 'Martillos para chapistas' },
+            ],
+          },
+          {
+            name: 'Llaves crique',
+            items: [
+              { name: 'Encastre 1/4' },
+              { name: 'Encastre 3/8' },
+              { name: 'Encastre 1/2' },
+              { name: 'Encastre 3/4' },
+            ],
+          },
+          {
+            name: 'Palancas de fuerza',
+            items: [
+              { name: 'Encastre 1/4' },
+              { name: 'Encastre 3/8' },
+              { name: 'Encastre 1/2' },
+              { name: 'Encastre 3/4' },
+              { name: 'Encastre 1"' },
+            ],
+          },
           { name: 'Extractores' },
           { name: 'Tubos especiales' },
           { name: 'Varios' },
@@ -122,8 +277,38 @@ const menuData: Group[] = [
       {
         name: 'Herramientas de precisión y medición',
         subcategories: [
-          { name: 'Para la mecánica' },
-          { name: 'Para la construcción' },
+          {
+            name: 'Para la mecánica',
+            items: [
+              { name: 'Sondas' },
+              { name: 'Calibres' },
+              { name: 'Telescopines' },
+              { name: 'Micrómetros' },
+              { name: 'Alesómetros' },
+              { name: 'Goniómetros' },
+              { name: 'Lámparas de puesta a punto' },
+              { name: 'Medidores de temperatura' },
+              { name: 'Multímetros-testers' },
+              { name: 'Reglas de planitud' },
+              { name: 'Pinzas amperométricas' },
+            ],
+          },
+          {
+            name: 'Para la construcción',
+            items: [
+              { name: 'Cintas métricas' },
+              { name: 'Niveles laser' },
+              { name: 'Medidor de distancia laser' },
+              { name: 'Multímetros-testers' },
+              { name: 'Emperímetros' },
+              { name: 'Provadores de voltajes' },
+              { name: 'Metros plegables' },
+              { name: 'Escuadras' },
+              { name: 'Reglas' },
+              { name: 'Detectores de temperatura' },
+              { name: 'Detector de materiales' },
+            ],
+          },
         ],
       },
       {
@@ -172,8 +357,26 @@ const menuData: Group[] = [
           { name: 'Guantes' },
           { name: 'Lijas' },
           { name: 'Discos de corte' },
-          { name: 'Mechas' },
-          { name: 'Cepillos para amoladora y taladro' },
+          {
+            name: 'Mechas',
+            items: [
+              { name: 'Juegos de mechas' },
+              { name: 'Mechas individuales para acero' },
+              { name: 'Mechas individuales para mampostería' },
+              { name: 'Mechas individuales para madera' },
+              { name: 'Mechas copa y adaptadores' },
+              { name: 'Mechas escalonadas' },
+            ],
+          },
+          {
+            name: 'Cepillos para amoladora y taladro',
+            items: [
+              { name: 'Todos' },
+              { name: 'Cepillos de mano' },
+              { name: 'Cepillos para amoladoras' },
+              { name: 'Cepillos para taladros' },
+            ],
+          },
         ],
       },
       { name: 'Artículos para el hogar y jardín' },
@@ -189,20 +392,31 @@ export default function HamburgerMenu() {
   const [depth, setDepth] = useState(0)
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+  const [selectedSubcategory, setSelectedSubcategory] = useState<Subcategory | null>(null)
 
   function openGroup(group: Group) {
     setSelectedGroup(group)
     setSelectedCategory(null)
+    setSelectedSubcategory(null)
     setDepth(1)
   }
 
   function openCategory(category: Category) {
     setSelectedCategory(category)
+    setSelectedSubcategory(null)
     setDepth(2)
   }
 
+  function openSubcategory(subcategory: Subcategory) {
+    setSelectedSubcategory(subcategory)
+    setDepth(3)
+  }
+
   function goBack() {
-    if (depth === 2) {
+    if (depth === 3) {
+      setSelectedSubcategory(null)
+      setDepth(2)
+    } else if (depth === 2) {
       setSelectedCategory(null)
       setDepth(1)
     } else {
@@ -216,14 +430,21 @@ export default function HamburgerMenu() {
     setDepth(0)
     setSelectedGroup(null)
     setSelectedCategory(null)
+    setSelectedSubcategory(null)
   }
 
   const headerTitle =
-    depth === 0
-      ? 'MENÚ'
-      : depth === 1
-        ? (selectedGroup?.name ?? '')
-        : (selectedCategory?.name ?? '')
+    depth === 0 ? 'MENÚ' :
+    depth === 1 ? (selectedGroup?.name ?? '') :
+    depth === 2 ? (selectedCategory?.name ?? '') :
+    (selectedSubcategory?.name ?? '')
+
+  const panelClass = (panelDepth: number) => {
+    const base = 'absolute inset-0 flex flex-col overflow-y-auto transition-transform duration-300 ease-in-out bg-surface-container-lowest'
+    if (depth === panelDepth) return `${base} translate-x-0`
+    if (depth < panelDepth) return `${base} translate-x-full`
+    return `${base} -translate-x-full`
+  }
 
   return (
     <>
@@ -259,19 +480,19 @@ export default function HamburgerMenu() {
           </span>
         </div>
 
-        {depth === 2 && selectedGroup && selectedCategory && (
+        {depth >= 2 && (
           <div className="px-4 py-1.5 bg-surface-container border-b border-outline-variant flex-shrink-0">
             <span className="text-xs text-on-surface-variant uppercase tracking-wide">
-              {selectedGroup.name} › {selectedCategory.name}
+              {selectedGroup?.name}
+              {depth >= 3 && selectedCategory && ` › ${selectedCategory.name}`}
             </span>
           </div>
         )}
 
         <div className="flex-1 relative overflow-hidden">
 
-          <div
-            className={`absolute inset-0 flex flex-col overflow-y-auto transition-transform duration-300 ease-in-out bg-surface-container-lowest ${depth === 0 ? 'translate-x-0' : '-translate-x-full'}`}
-          >
+          {/* Panel 0 — grupos */}
+          <div className={panelClass(0)}>
             <div className="sticky top-0 bg-surface-container-lowest px-4 py-3 border-b border-outline-variant z-10">
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">
@@ -322,16 +543,12 @@ export default function HamburgerMenu() {
             </ul>
           </div>
 
-          <div
-            className={`absolute inset-0 flex flex-col overflow-y-auto transition-transform duration-300 ease-in-out bg-surface-container-lowest ${depth < 1 ? 'translate-x-full' : depth === 1 ? 'translate-x-0' : '-translate-x-full'}`}
-          >
+          {/* Panel 1 — categorías del grupo */}
+          <div className={panelClass(1)}>
             {selectedGroup && (
               <ul>
                 <li>
-                  <a
-                    href="#"
-                    className="flex items-center px-4 py-4 border-b-2 border-accent-red text-on-surface font-bold text-sm uppercase hover:bg-surface-container transition-colors duration-150"
-                  >
+                  <a href="#" className="flex items-center px-4 py-4 border-b-2 border-accent-red text-on-surface font-bold text-sm uppercase hover:bg-surface-container transition-colors duration-150">
                     Ver todo en {selectedGroup.name}
                   </a>
                 </li>
@@ -343,15 +560,10 @@ export default function HamburgerMenu() {
                         className="w-full flex items-center justify-between px-4 py-4 text-left border-b border-outline-variant hover:bg-surface-container active:bg-surface-container transition-colors duration-150"
                       >
                         <span className="text-sm text-on-surface">{cat.name}</span>
-                        <span className="material-symbols-outlined text-outline flex-shrink-0">
-                          chevron_right
-                        </span>
+                        <span className="material-symbols-outlined text-outline flex-shrink-0">chevron_right</span>
                       </button>
                     ) : (
-                      <a
-                        href="#"
-                        className="flex items-center justify-between px-4 py-4 border-b border-outline-variant hover:bg-surface-container transition-colors duration-150"
-                      >
+                      <a href="#" className="flex items-center justify-between px-4 py-4 border-b border-outline-variant hover:bg-surface-container transition-colors duration-150">
                         <span className="text-sm text-on-surface">{cat.name}</span>
                       </a>
                     )}
@@ -361,26 +573,49 @@ export default function HamburgerMenu() {
             )}
           </div>
 
-          <div
-            className={`absolute inset-0 flex flex-col overflow-y-auto transition-transform duration-300 ease-in-out bg-surface-container-lowest ${depth === 2 ? 'translate-x-0' : 'translate-x-full'}`}
-          >
+          {/* Panel 2 — subcategorías */}
+          <div className={panelClass(2)}>
             {selectedCategory && (
               <ul>
                 <li>
-                  <a
-                    href="#"
-                    className="flex items-center px-4 py-4 border-b-2 border-accent-red text-on-surface font-bold text-sm uppercase hover:bg-surface-container transition-colors duration-150"
-                  >
+                  <a href="#" className="flex items-center px-4 py-4 border-b-2 border-accent-red text-on-surface font-bold text-sm uppercase hover:bg-surface-container transition-colors duration-150">
                     Ver todo en {selectedCategory.name}
                   </a>
                 </li>
                 {selectedCategory.subcategories?.map((sub) => (
                   <li key={sub.name}>
-                    <a
-                      href="#"
-                      className="flex items-center px-4 py-4 border-b border-outline-variant text-sm text-on-surface hover:bg-surface-container transition-colors duration-150"
-                    >
-                      {sub.name}
+                    {sub.items?.length ? (
+                      <button
+                        onClick={() => openSubcategory(sub)}
+                        className="w-full flex items-center justify-between px-4 py-4 text-left border-b border-outline-variant hover:bg-surface-container active:bg-surface-container transition-colors duration-150"
+                      >
+                        <span className="text-sm text-on-surface">{sub.name}</span>
+                        <span className="material-symbols-outlined text-outline flex-shrink-0">chevron_right</span>
+                      </button>
+                    ) : (
+                      <a href="#" className="flex items-center justify-between px-4 py-4 border-b border-outline-variant hover:bg-surface-container transition-colors duration-150">
+                        <span className="text-sm text-on-surface">{sub.name}</span>
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Panel 3 — ítems finales */}
+          <div className={panelClass(3)}>
+            {selectedSubcategory && (
+              <ul>
+                <li>
+                  <a href="#" className="flex items-center px-4 py-4 border-b-2 border-accent-red text-on-surface font-bold text-sm uppercase hover:bg-surface-container transition-colors duration-150">
+                    Ver todo en {selectedSubcategory.name}
+                  </a>
+                </li>
+                {selectedSubcategory.items?.map((item) => (
+                  <li key={item.name}>
+                    <a href="#" className="flex items-center px-4 py-4 border-b border-outline-variant text-sm text-on-surface hover:bg-surface-container transition-colors duration-150">
+                      {item.name}
                     </a>
                   </li>
                 ))}
