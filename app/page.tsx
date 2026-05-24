@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import HamburgerMenu from "./components/HamburgerMenu";
 
 const heroImage =
@@ -123,9 +124,10 @@ export default function Home() {
           </h3>
           <div className="flex flex-col gap-2 md:grid md:grid-cols-2">
             {products.map((product) => (
-              <div
+              <Link
                 key={product.id}
-                className="bg-charcoal flex items-center p-3 gap-4 cursor-pointer hover:bg-[#1a1a1a] transition-all duration-200 border-l-4 border-transparent hover:border-accent-red rounded-none"
+                href={`/producto/${product.id}`}
+                className="bg-charcoal flex items-center p-3 gap-4 hover:bg-[#1a1a1a] transition-all duration-200 border-l-4 border-transparent hover:border-accent-red"
               >
                 <div className="w-20 h-20 flex-shrink-0 relative overflow-hidden border border-white/10 rounded-none">
                   <Image
@@ -150,7 +152,7 @@ export default function Home() {
                 <span className="material-symbols-outlined text-on-primary flex-shrink-0">
                   chevron_right
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </section>

@@ -17,5 +17,5 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-hanken), sans-serif;
+  --font-sans: var(--font-poppins), sans-serif;
 }
