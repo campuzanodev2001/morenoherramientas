@@ -56,7 +56,7 @@ export default function ShippingCalculator() {
             if (e.key === "Enter") calculate();
           }}
           placeholder="Código postal"
-          className="flex-1 border-2 border-primary-container px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-accent-red bg-surface-container-lowest text-on-surface placeholder:text-outline"
+          className="flex-1 min-w-0 border-2 border-primary-container px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-accent-red bg-surface-container-lowest text-on-surface placeholder:text-outline"
         />
         <button
           onClick={calculate}

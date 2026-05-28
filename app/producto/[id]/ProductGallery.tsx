@@ -12,7 +12,7 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 min-w-0 w-full">
       <div className="relative aspect-square border-2 border-charcoal bg-surface-container overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]">
         <Image
           src={images[selectedIndex]}

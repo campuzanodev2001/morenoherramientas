@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import HamburgerMenu from "./components/HamburgerMenu";
+import SearchBar from "./components/SearchBar";
 
 const heroImage =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuCO_LAsdBrffs-Kq3gJVnxK7aX8bAmBBkbWGo7xXdkHhH1JcnGiVDK39vS3H29lEzSXhUqksdlEH1iCkL7rJQ6MqlyNz4aVOsncK-fyQq5dI3ymUVYlysSIW8U61C0apkUihGCNh8gb0Lya2fljGjPFsMbPYYbWlWAuUM02vGvgHD-0RjVdNFwcYsmSvHFJ0zd2uILSeQLwJ5cREPzGfGQ_8EKcsGCOlmdVBI9o1WvnIlmbMEPhMqWWOYdg7s9G9EQyzo-1vIlSAfY";
+  "https://images.stockcake.com/public/c/6/c/c6ccec9e-32ec-4116-a904-ce8a5c92a7e7_large/vintage-garage-scene-stockcake.jpg";
 
 const categories = [
   "Herramientas",
@@ -21,7 +22,7 @@ const products = [
     name: "Taladro Percutor 20V MAX",
     price: "$145.000",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCP5vKXLEfwXJr6elYHcp6fcMyMZmf1DSQLMRAjoFGdehb2LtWRp0svm44Xe7C80C4VNHdYhvWg6k0tA7CSiY1I-s0g9EwQx6hsAb6RqwcP7IzquHfo1ObAEqpf-S_L9kCWs05BniiRZ3dqRR4LJ8YTCSYD8TkQsC72-88yQmiptolrH5d7k4hJ4zl9N6BAR4b1L7n1SGFdz_AB9-A8T1vxq_n4cKfPDGOKbL3e3ody2N--SZXgGvYa9dRt7HxWnKw0oBJRRti8sF8",
+      "https://images.pexels.com/photos/20094121/pexels-photo-20094121.jpeg?auto=compress&cs=tinysrgb&w=400",
   },
   {
     id: 2,
@@ -29,7 +30,7 @@ const products = [
     name: "Amoladora Angular 115MM",
     price: "$89.900",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuD87YL24R8qpM65394RJT1PJhYsfrbwDKwoKSDP4NWmxEk8ZuRYh70GMxRcu-YR7xkAuEdeLiZGrLzPTqaXDb-DVp83-c40rUv8RZvVMKFlE0rvtq_gA0XGt1vPnE15IIhcX8XZBIOdiaUr8e-7nqTzdvWoGkDM_gPi1VDYQlRqeV3ggLdIVm_cupDjslqkgdoLrplkF0-6CcKkUC4jocX-VwyhzRzv3UeJYxpBLEQ6AozDmFn6rpO4b-IlBvt0e9de9Xymtf-4vqE",
+      "https://images.unsplash.com/photo-1598302936625-6075fbd98dd7?w=400&q=80&fit=crop",
   },
   {
     id: 3,
@@ -37,7 +38,7 @@ const products = [
     name: "Medidor Láser 50M",
     price: "$65.500",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDD9bl9bTcId3iiVjnMEY1BhEpaCbAbZi0F8pDWKwXhDWRxnypBmMf6eeEd08dM50bb0BXLP2vLn49yH8bAD-KECVTbHMIRZdioHS0vohVRXuxRWFq98cvvjvX8gm0p4igPZi27kmVuezMt3ZeXctzi8PHL78ArWsVyJTQz7s0G7L7wozUY7au3gmpd3Y7istIHXel57ThjXJL73XVBNfHLN_2YthWKynDW25X2sdbOqCAm5K84ugNKMbLAK5RHVbL93aQLl4_C7Bw",
+      "https://images.pexels.com/photos/5853931/pexels-photo-5853931.jpeg?auto=compress&cs=tinysrgb&w=400",
   },
   {
     id: 4,
@@ -45,7 +46,7 @@ const products = [
     name: 'Sierra Circular 7 1/4"',
     price: "$112.000",
     image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCXopAoxj3i4_EGa5Wg9j-XI4QWiNxCkky2w29FMXr8c6xuLtuLe9aAfyw05ixWldZefkSOCj28vdsWacnzir-cPLQ7vzNsKaewvJWN24kapDtl8IGmP_UJcb5_3wCSe6chYeDs9tTNAII6a2mIh0oei2khYVD43SjzWI3hobUWTmn3uoH8QYbq4YNwdt4iK0s2U4KCVRRP60mDKXZuNSwSs7hJ9OqwpvBoh1WmYVM8C3qPtBIC4onJXG90gcTLgF5EgjmeeSjng70",
+      "https://images.unsplash.com/photo-1632676711853-b0cefe19fdfb?w=400&q=80&fit=crop",
   },
 ];
 
@@ -74,22 +75,7 @@ export default function Home() {
             <h2 className="text-4xl md:text-6xl leading-[1.1] text-on-primary font-black tracking-tighter uppercase text-center drop-shadow-lg">
               Todo para tu taller en un solo lugar
             </h2>
-            <div className="flex flex-col md:flex-row gap-2 max-w-2xl mx-auto w-full">
-              <div className="relative flex-1">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">
-                  search
-                </span>
-                <input
-                  className="w-full pl-10 pr-4 py-4 bg-surface-container-lowest text-on-surface border-2 border-primary-container rounded-search focus:outline-none focus:border-accent-red text-base"
-                  placeholder="Buscá herramientas, repuestos..."
-                  type="text"
-                />
-              </div>
-              <button className="bg-accent-red text-on-primary py-4 px-6 flex items-center justify-center gap-2 uppercase tracking-widest font-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,0.25)] rounded-none whitespace-nowrap">
-                Buscar productos
-                <span className="material-symbols-outlined text-xl">arrow_forward</span>
-              </button>
-            </div>
+            <SearchBar />
           </div>
         </section>
 
@@ -112,10 +98,10 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <button className="w-full border-2 border-primary-container text-primary-container py-4 uppercase font-black tracking-widest text-sm hover:bg-primary-container hover:text-on-primary transition-colors duration-200 flex items-center justify-center gap-2 rounded-none">
+          <Link href="/categorias" className="w-full border-2 border-primary-container text-primary-container py-4 uppercase font-black tracking-widest text-sm hover:bg-primary-container hover:text-on-primary transition-colors duration-200 flex items-center justify-center gap-2 rounded-none">
             Ver todas las categorías
             <span className="material-symbols-outlined text-xl">grid_view</span>
-          </button>
+          </Link>
         </section>
 
         <section className="px-4 md:px-16 flex flex-col gap-4 max-w-[1280px] mx-auto w-full">
@@ -129,13 +115,13 @@ export default function Home() {
                 href={`/producto/${product.id}`}
                 className="bg-charcoal flex items-center p-3 gap-4 hover:bg-[#1a1a1a] transition-all duration-200 border-l-4 border-transparent hover:border-accent-red"
               >
-                <div className="w-20 h-20 flex-shrink-0 relative overflow-hidden border border-white/10 rounded-none">
+                <div className="w-20 h-20 flex-shrink-0 relative overflow-hidden bg-white border border-white/10 rounded-none">
                   <Image
                     src={product.image}
                     alt={product.name}
                     fill
                     sizes="80px"
-                    className="object-cover grayscale hover:grayscale-0 transition-all duration-300"
+                    className="object-contain p-1"
                   />
                 </div>
                 <div className="flex flex-col flex-grow min-w-0">

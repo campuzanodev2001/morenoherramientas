@@ -1,100 +1,71 @@
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import HamburgerMenu from "@/app/components/HamburgerMenu";
 import ProductGallery from "./ProductGallery";
 import ShippingCalculator from "./ShippingCalculator";
+import { getProductById } from "@/lib/products";
 
-type StockStatus = "available" | "low" | "out";
-
-const product = {
-  name: "Taladro Percutor 20V MAX",
-  brand: "DEWALT",
-  sku: "DWD112-LA",
-  priceFormatted: "$145.000",
-  stock: "available" as StockStatus,
-  images: [
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuCP5vKXLEfwXJr6elYHcp6fcMyMZmf1DSQLMRAjoFGdehb2LtWRp0svm44Xe7C80C4VNHdYhvWg6k0tA7CSiY1I-s0g9EwQx6hsAb6RqwcP7IzquHfo1ObAEqpf-S_L9kCWs05BniiRZ3dqRR4LJ8YTCSYD8TkQsC72-88yQmiptolrH5d7k4hJ4zl9N6BAR4b1L7n1SGFdz_AB9-A8T1vxq_n4cKfPDGOKbL3e3ody2N--SZXgGvYa9dRt7HxWnKw0oBJRRti8sF8",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuD87YL24R8qpM65394RJT1PJhYsfrbwDKwoKSDP4NWmxEk8ZuRYh70GMxRcu-YR7xkAuEdeLiZGrLzPTqaXDb-DVp83-c40rUv8RFlE0rvtq_gA0XGt1vPnE15IIhcX8XZBIOdiaUr8e-7nqTzdvWoGkDM_gPi1VDYQlRqeV3ggLdIVm_cupDjslqkgdoLrplkF0-6CcKkUC4jocX-VwyhzRzv3UeJYxpBLEQ6AozDmFn6rpO4b-IlBvt0e9de9Xymtf-4vqE",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDD9bl9bTcId3iiVjnMEY1BhEpaCbAbZi0F8pDWKwXhDWRxnypBmMf6eeEd08dM50bb0BXLP2vLn49yH8bAD-KECVTbHVTuxRWFq98cvvjvX8gm0p4igPZi27kmVuezMt3ZeXctzi8PHL78ArWsVyJTQz7s0G7L7wozUY7au3gmpd3Y7istIHXel57ThjXJL73XVBNfHLN_2YthWKynDW25X2sdbOqCAm5K84ugNKMbLAK5RHVbL93aQLl4_C7Bw",
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuCXopAoxj3i4_EGa5Wg9j-XI4QWiNxCkky2w29FMXr8c6xuLtuLe9aAfyw05ixWldZefkSOCj28vdsWacnzir-cPLQ7vzNsKaewvJWN24kapDtl8IGmP_UJcb5_3wCSe6chYeDs9tTNAII6a2mIh0oei2khYVD43SjzWI3hobUWTmn3uoH8QYbq4YNwdt4iK0s2U4KCVRRP60mDKXZuNSwSs7hJ9OqwpvBoh1WmYVM8C3qPtBIC4onJXG90gcTLgF5EgjmeeSjng70",
-  ],
-  description:
-    "El Taladro Percutor DEWALT 20V MAX es la herramienta definitiva para profesionales que exigen rendimiento en cada trabajo. Con su sistema de percusión de alta eficiencia, perfora concreto, ladrillo y mampostería con potencia superior. El mecanismo de 2 velocidades permite adaptar el torque y la velocidad a cualquier material, mientras que el mandril de 13 mm con ajuste rápido garantiza cambios de broca ágiles sin herramientas adicionales. La batería de iones de litio 20V MAX ofrece autonomía superior y potencia constante hasta el último segundo de carga.",
-  specs: [
-    { label: "Voltaje", value: "20V MAX" },
-    { label: "RPM sin carga", value: "0–550 / 0–1.800" },
-    { label: "Golpes por minuto", value: "0–32.750 BPM" },
-    { label: "Mandril", value: '13 mm (1/2")' },
-    { label: "Perforación madera", value: "32 mm" },
-    { label: "Perforación acero", value: "13 mm" },
-    { label: "Perforación mampostería", value: "16 mm" },
-    { label: "Par máximo", value: "46 Nm" },
-    { label: "Peso (sin batería)", value: "1,9 kg" },
-    { label: "Largo", value: "205 mm" },
-    { label: "Garantía", value: "3 años" },
-  ],
-  category: "Herramientas Eléctricas",
-  subcategory: "Taladros",
-};
+const stockBadge = {
+  available: { label: "Disponible", className: "bg-charcoal text-on-primary" },
+  low: { label: "Últimas unidades", className: "border-2 border-accent-red text-accent-red" },
+  out: { label: "Sin stock", className: "bg-accent-red text-on-primary" },
+} as const;
 
 const relatedProducts = [
   {
     id: 2,
-    name: "Amoladora Angular 115MM",
+    name: "Kit Puesta a Punto Universal",
+    price: "$48.500",
+    brand: "JONNESWAY",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDD9bl9bTcId3iiVjnMEY1BhEpaCbAbZi0F8pDWKwXhDWRxnypBmMf6eeEd08dM50bb0BXLP2vLn49yH8bAD-KECVTbHVTuxRWFq98cvvjvX8gm0p4igPZi27kmVuezMt3ZeXctzi8PHL78ArWsVyJTQz7s0G7L7wozUY7au3gmpd3Y7istIHXel57ThjXJL73XVBNfHLN_2YthWKynDW25X2sdbOqCAm5K84ugNKMbLAK5RHVbL93aQLl4_C7Bw",
+  },
+  {
+    id: 34,
+    name: "Llave de Impacto 1/2\" 600 Nm",
+    price: "$168.000",
+    brand: "MILWAUKEE",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCP5vKXLEfwXJr6elYHcp6fcMyMZmf1DSQLMRAjoFGdehb2LtWRp0svm44Xe7C80C4VNHdYhvWg6k0tA7CSiY1I-s0g9EwQx6hsAb6RqwcP7IzquHfo1ObAEqpf-S_L9kCWs05BniiRZ3dqRR4LJ8YTCSYD8TkQsC72-88yQmiptolrH5d7k4hJ4zl9N6BAR4b1L7n1SGFdz_AB9-A8T1vxq_n4cKfPDGOKbL3e3ody2N--SZXgGvYa9dRt7HxWnKw0oBJRRti8sF8",
+  },
+  {
+    id: 36,
+    name: "Amoladora Angular 115mm 720W",
     price: "$89.900",
-    brand: "MAKITA",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuD87YL24R8qpM65394RJT1PJhYsfrbwDKwoKSDP4NWmxEk8ZuRYh70GMxRcu-YR7xkAuEdeLiZGrLzPTqaXDb-DVp83-c40rUv8RFlE0rvtq_gA0XGt1vPnE15IIhcX8XZBIOdiaUr8e-7nqTzdvWoGkDM_gPi1VDYQlRqeV3ggLdIVm_cupDjslqkgdoLrplkF0-6CcKkUC4jocX-VwyhzRzv3UeJYxpBLEQ6AozDmFn6rpO4b-IlBvt0e9de9Xymtf-4vqE",
-  },
-  {
-    id: 3,
-    name: "Medidor Láser 50M",
-    price: "$65.500",
     brand: "BOSCH",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDD9bl9bTcId3iiVjnMEY1BhEpaCbAbZi0F8pDWKwXhDWRxnypBmMf6eeEd08dM50bb0BXLP2vLn49yH8bAD-KECVTbHVTuxRWFq98cvvjvX8gm0p4igPZi27kmVuezMt3ZeXctzi8PHL78ArWsVyJTQz7s0G7L7wozUY7au3gmpd3Y7istIHXel57ThjXJL73XVBNfHLN_2YthWKynDW25X2sdbOqCAm5K84ugNKMbLAK5RHVbL93aQLl4_C7Bw",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuD87YL24R8qpM65394RJT1PJhYsfrbwDKwoKSDP4NWmxEk8ZuRYh70GMxRcu-YR7xkAuEdeLiZGrLzPTqaXDb-DVp83-c40rUv8RFlE0rvtq_gA0XGt1vPnE15IIhcX8XZBIOdiaUr8e-7nqTzdvWoGkDM_gPi1VDYQlRqeV3ggLdIVm_cupDjslqkgdoLrplkF0-6CcKkUC4jocX-VwyhzRzv3UeJYxpBLEQ6AozDmFn6rpO4b-IlBvt0e9de9Xymtf-4vqE",
   },
   {
-    id: 4,
-    name: 'Sierra Circular 7 1/4"',
+    id: 44,
+    name: 'Sierra Circular 7-1/4" 1400W',
     price: "$112.000",
     brand: "DEWALT",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCXopAoxj3i4_EGa5Wg9j-XI4QWiNxCkky2w29FMXr8c6xuLtuLe9aAfyw05ixWldZefkSOCj28vdsWacnzir-cPLQ7vzNsKaewvJWN24kapDtl8IGmP_UJcb5_3wCSe6chYeDs9tTNAII6a2mIh0oei2khYVD43SjzWI3hobUWTmn3uoH8QYbq4YNwdt4iK0s2U4KCVRRP60mDKXZuNSwSs7hJ9OqwpvBoh1WmYVM8C3qPtBIC4onJXG90gcTLgF5EgjmeeSjng70",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCXopAoxj3i4_EGa5Wg9j-XI4QWiNxCkky2w29FMXr8c6xuLtuLe9aAfyw05ixWldZefkSOCj28vdsWacnzir-cPLQ7vzNsKaewvJWN24kapDtl8IGmP_UJcb5_3wCSe6chYeDs9tTNAII6a2mIh0oei2khYVD43SjzWI3hobUWTmn3uoH8QYbq4YNwdt4iK0s2U4KCVRRP60mDKXZuNSwSs7hJ9OqwpvBoh1WmYVM8C3qPtBIC4onJXG90gcTLgF5EgjmeeSjng70",
   },
   {
-    id: 5,
-    name: "Taladro Inalámbrico 12V",
-    price: "$98.000",
-    brand: "STANLEY",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCP5vKXLEfwXJr6elYHcp6fcMyMZmf1DSQLMRAjoFGdehb2LtWRp0svm44Xe7C80C4VNHdYhvWg6k0tA7CSiY1I-s0g9EwQx6hsAb6RqwcP7IzquHfo1ObAEqpf-S_L9kCWs05BniiRZ3dqRR4LJ8YTCSYD8TkQsC72-88yQmiptolrH5d7k4hJ4zl9N6BAR4b1L7n1SGFdz_AB9-A8T1vxq_n4cKfPDGOKbL3e3ody2N--SZXgGvYa9dRt7HxWnKw0oBJRRti8sF8",
-  },
-  {
-    id: 6,
-    name: "Lijadora Orbital 300W",
-    price: "$54.900",
-    brand: "BOSCH",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuD87YL24R8qpM65394RJT1PJhYsfrbwDKwoKSDP4NWmxEk8ZuRYh70GMxRcu-YR7xkAuEdeLiZGrLzPTqaXDb-DVp83-c40rUv8RFlE0rvtq_gA0XGt1vPnE15IIhcX8XZBIOdiaUr8e-7nqTzdvWoGkDM_gPi1VDYQlRqeV3ggLdIVm_cupDjslqkgdoLrplkF0-6CcKkUC4jocX-VwyhzRzv3UeJYxpBLEQ6AozDmFn6rpO4b-IlBvt0e9de9Xymtf-4vqE",
+    id: 33,
+    name: "Kit 20V 5 Herramientas Makita",
+    price: "$385.000",
+    brand: "MAKITA",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCP5vKXLEfwXJr6elYHcp6fcMyMZmf1DSQLMRAjoFGdehb2LtWRp0svm44Xe7C80C4VNHdYhvWg6k0tA7CSiY1I-s0g9EwQx6hsAb6RqwcP7IzquHfo1ObAEqpf-S_L9kCWs05BniiRZ3dqRR4LJ8YTCSYD8TkQsC72-88yQmiptolrH5d7k4hJ4zl9N6BAR4b1L7n1SGFdz_AB9-A8T1vxq_n4cKfPDGOKbL3e3ody2N--SZXgGvYa9dRt7HxWnKw0oBJRRti8sF8",
   },
 ];
 
-const stockBadge: Record<StockStatus, { label: string; className: string }> = {
-  available: { label: "Disponible", className: "bg-charcoal text-on-primary" },
-  low: {
-    label: "Últimas unidades",
-    className: "border-2 border-accent-red text-accent-red",
-  },
-  out: { label: "Sin stock", className: "bg-accent-red text-on-primary" },
-};
+interface ProductPageProps {
+  params: Promise<{ id: string }>
+}
 
-const whatsappMessage = encodeURIComponent(
-  `Hola, me interesa el producto: ${product.name} (SKU: ${product.sku})`
-);
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { id } = await params
+  const product = getProductById(Number(id))
 
-export default function ProductPage() {
-  const badge = stockBadge[product.stock];
+  if (!product) {
+    notFound()
+  }
+
+  const badge = stockBadge[product.stock]
+  const whatsappMessage = encodeURIComponent(
+    `Hola, me interesa el producto: ${product.name} (SKU: ${product.sku})`
+  )
 
   return (
     <>
@@ -129,13 +100,17 @@ export default function ProductPage() {
             >
               {product.category}
             </Link>
-            <span className="text-outline">/</span>
-            <Link
-              href="#"
-              className="hover:text-accent-red transition-colors uppercase tracking-wide"
-            >
-              {product.subcategory}
-            </Link>
+            {product.subcategory && (
+              <>
+                <span className="text-outline">/</span>
+                <Link
+                  href="#"
+                  className="hover:text-accent-red transition-colors uppercase tracking-wide"
+                >
+                  {product.subcategory}
+                </Link>
+              </>
+            )}
             <span className="text-outline">/</span>
             <span className="text-on-surface font-bold uppercase tracking-wide">
               {product.name}
@@ -147,7 +122,7 @@ export default function ProductPage() {
           <div className="grid md:grid-cols-[3fr_2fr] gap-8 lg:gap-16">
             <ProductGallery images={product.images} productName={product.name} />
 
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 min-w-0">
               <div className="flex items-center justify-between gap-4">
                 <Link
                   href="#"
@@ -173,7 +148,7 @@ export default function ProductPage() {
 
               <div className="border-l-4 border-accent-red pl-4 py-1">
                 <p className="text-4xl font-black text-accent-red leading-none">
-                  {product.priceFormatted}
+                  {product.price}
                 </p>
                 <p className="text-xs text-on-surface-variant mt-1.5 font-medium">
                   Precio final · IVA incluido
@@ -248,13 +223,13 @@ export default function ProductPage() {
           </div>
         </section>
 
-        <section className="border-t-2 border-charcoal py-8">
+        <section className="border-t-2 border-charcoal py-8 overflow-x-hidden">
           <div className="max-w-[1280px] mx-auto w-full px-4 md:px-16 mb-4">
             <h2 className="text-xl font-black uppercase border-l-4 border-accent-red pl-3 text-on-surface">
               Productos relacionados
             </h2>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto w-full">
             <div className="flex gap-3 pb-4 px-4 md:px-16 w-max">
               {relatedProducts.map((rel) => (
                 <Link
