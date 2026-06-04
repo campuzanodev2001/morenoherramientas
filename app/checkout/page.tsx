@@ -102,7 +102,7 @@ export default function CheckoutPage() {
             <CartHeader />
           </div>
         </header>
-        <main className="pt-16 max-w-[1280px] mx-auto w-full px-4 md:px-16 flex flex-col items-center justify-center gap-6 py-20 text-center min-h-[calc(100dvh-4rem)]">
+        <main className="mt-16 max-w-[1280px] mx-auto w-full px-4 md:px-16 flex flex-col items-center justify-center gap-6 py-20 text-center min-h-[calc(100dvh-4rem)]">
           <p className="text-xl font-black uppercase text-on-surface-variant">
             No hay productos en el carrito
           </p>
@@ -132,7 +132,7 @@ export default function CheckoutPage() {
         </div>
       </header>
 
-      <main className="pt-16 max-w-[1280px] mx-auto w-full px-4 md:px-16 py-8">
+      <main className="mt-16 max-w-[1280px] mx-auto w-full px-4 md:px-16 py-8">
         <div className="flex items-center gap-3 mb-6">
           <Link
             href="/carrito"
