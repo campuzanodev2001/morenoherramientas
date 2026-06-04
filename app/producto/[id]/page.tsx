@@ -2,8 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import HamburgerMenu from "@/app/components/HamburgerMenu";
+import CartHeader from "@/app/components/CartHeader";
 import ProductGallery from "./ProductGallery";
 import ShippingCalculator from "./ShippingCalculator";
+import AddToCartButton from "./AddToCartButton";
 import { getProductById } from "@/lib/products";
 
 const stockBadge = {
@@ -78,9 +80,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           >
             Moreno Herramientas
           </Link>
-          <button className="text-primary-container p-2">
-            <span className="material-symbols-outlined">shopping_cart</span>
-          </button>
+          <CartHeader />
         </div>
       </header>
 
@@ -156,15 +156,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
 
               <div className="flex flex-col gap-2 pt-1">
-                <button className="w-full bg-accent-red text-on-primary font-black uppercase tracking-widest py-4 text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.25)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.25)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-150">
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    shopping_cart
-                  </span>
-                  Agregar al carrito
-                </button>
+                <AddToCartButton product={product} />
                 <a
                   href={`https://wa.me/5491100000000?text=${whatsappMessage}`}
                   target="_blank"
