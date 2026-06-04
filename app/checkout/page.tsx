@@ -60,7 +60,7 @@ export default function CheckoutPage() {
           </div>
         </header>
 
-        <main className="pt-16 max-w-[1280px] mx-auto w-full px-4 md:px-16 flex flex-col items-center justify-center gap-6 py-20 text-center min-h-[calc(100dvh-4rem)]">
+        <main className="mt-16 max-w-[1280px] mx-auto w-full px-4 md:px-16 flex flex-col items-center justify-center gap-6 py-20 text-center min-h-[calc(100dvh-4rem)]">
           <span
             className="material-symbols-outlined text-[80px] text-accent-red"
             style={{ fontVariationSettings: "'FILL' 1" }}
