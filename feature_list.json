@@ -1,0 +1,524 @@
+{
+  "project": "Moreno Herramientas — Tienda online ferretería (Next.js 16 / App Router)",
+  "generated": "2026-06-24",
+  "summary": "Estado actual: prototipo frontend funcional (catálogo estático, carrito en localStorage, admin en sessionStorage con password hardcodeada, checkout local sin pago real). Todo el backend de producción definido en CLAUDE.md y los docs de soporte (DB, auth, pagos, webhook, envíos, mails, observabilidad, seguridad) está pendiente.",
+  "status_legend": {
+    "DONE": "Implementado, todos los AC verificados.",
+    "IN_PROGRESS": "En curso (una sola feature a la vez).",
+    "TODO": "No iniciado.",
+    "BLOCKED": "Bloqueado por dependencia externa (ver blockedReason)."
+  },
+  "features": [
+    {
+      "id": "INFRA-01",
+      "name": "Design system y layout global",
+      "status": "DONE",
+      "description": "Sistema de estilos Tailwind v4 con tokens propios (surface, primary-container, on-surface, etc.), layout raíz (app/layout.tsx), globals.css, header con logo, menú hamburguesa y barra de búsqueda. Documentado en DESIGN.md.",
+      "acceptance_criteria": [
+        "El layout raíz renderiza header consistente (logo, menú, carrito, búsqueda) en todas las páginas del storefront.",
+        "Tailwind v4 sin librerías de UI de terceros.",
+        "Tokens de color definidos en globals.css y reutilizados, sin colores hardcodeados sueltos.",
+        "Responsive: el header se adapta a mobile y desktop."
+      ]
+    },
+    {
+      "id": "INFRA-02",
+      "name": "Validación de variables de entorno con Zod (lib/env.ts)",
+      "status": "DONE",
+      "description": "Schema Zod que valida todas las env vars al arrancar (DATABASE_URL, NEXTAUTH_SECRET, MP_ACCESS_TOKEN, claves Cloudinary, Upstash, Sentry, Axiom, etc.). La app no debe arrancar con configuración inválida.",
+      "acceptance_criteria": [
+        "lib/env.ts exporta un objeto tipado validado con Zod a partir de process.env.",
+        "Si falta una env var requerida o tiene formato inválido, el build/arranque falla con un mensaje claro indicando cuál.",
+        "Las env vars públicas (NEXT_PUBLIC_*) están separadas de las del servidor; los secretos nunca se exponen al cliente.",
+        "Ningún archivo accede a process.env directamente para variables ya validadas; usan lib/env.ts."
+      ]
+    },
+    {
+      "id": "INFRA-03",
+      "name": "Sistema de errores centralizado (lib/errors)",
+      "status": "DONE",
+      "description": "Jerarquía de errores custom (AppError, ValidationError, AuthError, AuthorizationError, NotFoundError, RateLimitError, PaymentError, ShippingError) y handlers centralizados para API routes y Server Actions.",
+      "acceptance_criteria": [
+        "lib/errors/index.ts define la jerarquía con message, code, statusCode e isOperational.",
+        "handleApiError(error) devuelve siempre { error: { message, code, details? } } usando statusCode del error operacional.",
+        "Errores NO operacionales devuelven 500 genérico sin filtrar stack trace, nombres de tablas ni mensajes de la DB.",
+        "handleServerActionError(error) devuelve { success: false, error: string }.",
+        "lib/errors/validation.ts formatea errores de Zod en { field, message }[].",
+        "Todo error se loggea internamente con console.error y contexto estructurado antes de responder."
+      ]
+    },
+    {
+      "id": "INFRA-04",
+      "name": "Mapa de mensajes de error de MercadoPago",
+      "status": "DONE",
+      "description": "lib/errors/mp-error-messages.ts mapea códigos de rechazo de MP a mensajes amigables en español.",
+      "acceptance_criteria": [
+        "Cubre todos los códigos listados en 02-security.md (cc_rejected_*, pending_*) más un default.",
+        "Una función traduce un código de MP a su mensaje; códigos desconocidos caen al default genérico.",
+        "Se usa tanto en la UI de checkout como en el mail PaymentFailed y en el detalle de orden."
+      ]
+    },
+    {
+      "id": "INFRA-05",
+      "name": "Rate limiting con Upstash Redis (lib/rate-limit)",
+      "status": "DONE",
+      "description": "Sliding window con Upstash. Constantes RATE_LIMITS (LOGIN, CHECKOUT, API_PUBLIC, WEBHOOK, SEARCH), wrapper withRateLimit y extracción de IP real.",
+      "acceptance_criteria": [
+        "rateLimit({ identifier, limit, window }) usa sliding window y devuelve { success, limit, remaining, retryAfter? }.",
+        "getClientIp(request) toma la PRIMERA IP de X-Forwarded-For (no la última).",
+        "Superar el límite devuelve 429 con header Retry-After en segundos.",
+        "Más de 60 requests/min a una /api/* devuelve 429; 5 logins fallidos por IP en 15m bloquean el 6º intento.",
+        "Las constantes coinciden exactamente con los límites de 02-security.md."
+      ]
+    },
+    {
+      "id": "INFRA-06",
+      "name": "Middleware: rate limiting + protección de rutas + security headers",
+      "status": "DONE",
+      "description": "middleware.ts que aplica API_PUBLIC a /api/* (excepto /api/auth/*), protege /cuenta/*, no interfiere con /admin, y agrega security headers a toda respuesta.",
+      "acceptance_criteria": [
+        "Extrae la IP real y aplica rate limiting API_PUBLIC a /api/* excepto /api/auth/*.",
+        "/cuenta/* sin sesión redirige a /login?callbackUrl=...",
+        "Agrega X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy y Permissions-Policy a todas las respuestas.",
+        "CSP configurada para permitir Checkout Bricks de MercadoPago.",
+        "No rompe el ruteo de /admin."
+      ]
+    },
+    {
+      "id": "INFRA-07",
+      "name": "Observabilidad: Sentry + Axiom",
+      "status": "DONE",
+      "description": "Sentry para captura/alertas de errores y Axiom (next-axiom) para captura automática de console logs del servidor.",
+      "acceptance_criteria": [
+        "Sentry configurado con tracesSampleRate 0.1 en producción y 1.0 en desarrollo.",
+        "withAxiom envuelve next.config; los console.log/warn/error del servidor llegan a Axiom sin código extra.",
+        "handleApiError llama Sentry.captureException SOLO para errores no operacionales.",
+        "Alerta configurada para cualquier error en /api/webhooks/mercadopago.",
+        "En desarrollo los logs van solo a consola local; un error intencional aparece en Sentry con stack trace."
+      ]
+    },
+    {
+      "id": "DB-01",
+      "name": "Schemas Drizzle y migración inicial",
+      "status": "DONE",
+      "description": "Todos los schemas del modelo de datos (users, sessions, products, categories, product_images, orders, order_items, payment_events, shipping_quotes, carts, cart_items, pages, banners, mail_logs) con tipos inferidos y cliente Drizzle.",
+      "acceptance_criteria": [
+        "Cada tabla en su archivo en lib/db/schemas/, exportadas desde index.ts; tipos InferSelect/InferInsert desde lib/db/types.ts.",
+        "IDs uuid; dinero como integer en centavos (nunca float/decimal) con comentario.",
+        "Enum de status de orders con los 7 estados; shippingAddress como jsonb tipado con ShippingAddress.",
+        "payment_events es append-only (sin updatedAt); users y products tienen deletedAt para soft delete.",
+        "updatedAt se actualiza por hook de Drizzle en cada mutación.",
+        "npx drizzle-kit generate corre sin errores y produce la migración inicial."
+      ]
+    },
+    {
+      "id": "DB-02",
+      "name": "Queries tipadas de catálogo, órdenes y carrito",
+      "status": "DONE",
+      "description": "Queries en lib/db/queries/ para products, categories, orders y cart con tipos explícitos y reglas de seguridad.",
+      "acceptance_criteria": [
+        "getProducts soporta categorySlug/search/paginación por cursor y SIEMPRE filtra active = true AND deletedAt IS NULL.",
+        "getProductBySlug devuelve imágenes y categoría, o null si no existe.",
+        "decrementStock corre dentro de transacción y setea active = false si el stock llega a 0.",
+        "getOrderById verifica ownership (userId) y devuelve null si la orden no es del usuario.",
+        "Ninguna query devuelve campos sensibles (passwordHash, deletedAt).",
+        "Paginación con cursor, nunca offset, en listas grandes."
+      ]
+    },
+    {
+      "id": "AUTH-01",
+      "name": "Autenticación de clientes con NextAuth v5",
+      "status": "DONE",
+      "notes": "Núcleo completo (Google/Credentials, JWT con id+role, login/registro, rate limit LOGIN, timing-safe bcrypt, registro). El merge del carrito anónimo se ejecuta client-side en CART-01 (localStorage no es legible en el callback signIn) y el WelcomeEmail se engancha en MAIL-01 (hook ya presente en events.createUser).",
+      "description": "NextAuth v5 con Google OAuth, Credentials (bcrypt) y sesión anónima de invitado, sobre DrizzleAdapter.",
+      "acceptance_criteria": [
+        "Providers: Google OAuth, Credentials (bcrypt 12 rounds) y sesión anónima (UUID en cookie).",
+        "Credentials: rate limiting LOGIN antes de cualquier query; bcrypt.compare siempre se ejecuta (hash dummy) para evitar timing attacks.",
+        "Los mensajes de error nunca revelan si el email existe.",
+        "JWT con payload { id, email, name, role }; access token 15min, refresh 7 días en tabla sessions.",
+        "El callback signIn mergea el carrito anónimo al carrito del usuario sumando cantidades duplicadas.",
+        "Páginas /login y /registro con validación Zod inline, error por campo y loading en submit."
+      ]
+    },
+    {
+      "id": "AUTH-02",
+      "name": "Helpers de autorización (lib/auth/helpers.ts)",
+      "status": "DONE",
+      "description": "Helpers reutilizables para sesión y control de acceso.",
+      "acceptance_criteria": [
+        "getServerSession, requireAuth (lanza AuthError), requireRole (lanza AuthorizationError) e isOwner implementados y tipados.",
+        "requireRole('admin') protege todas las rutas y Server Actions del admin.",
+        "isOwner falla con AuthorizationError si el recurso no pertenece al usuario."
+      ]
+    },
+    {
+      "id": "ADMIN-AUTH",
+      "name": "Login del panel admin (prototipo)",
+      "status": "IN_PROGRESS",
+      "description": "Login de /admin con password hardcodeada ('moreno2024') y sesión en sessionStorage. Sirve de prototipo; la spec exige auth real de Payload/servidor separada de NextAuth.",
+      "acceptance_criteria": [
+        "PROTOTIPO: el formulario valida la password y guarda sesión, mostrando error si es incorrecta. [hecho]",
+        "PRODUCCIÓN: la password no puede estar hardcodeada en el cliente ni la sesión vivir solo en sessionStorage.",
+        "PRODUCCIÓN: el acceso a cualquier página /admin sin rol admin redirige correctamente.",
+        "PRODUCCIÓN: los tokens del admin y de NextAuth nunca se mezclan."
+      ]
+    },
+    {
+      "id": "CAT-01",
+      "name": "Datos de categorías (taxonomía)",
+      "status": "DONE",
+      "description": "Árbol de categorías/subcategorías/grupos definido en app/data/categories.ts y usado por catálogo, búsqueda y navegación.",
+      "acceptance_criteria": [
+        "La taxonomía se renderiza en la página de categorías y en el menú de navegación.",
+        "Cada categoría tiene slug legible (sin IDs internos en URLs).",
+        "Los productos referencian category/subcategory/group consistentes con la taxonomía."
+      ]
+    },
+    {
+      "id": "CAT-02",
+      "name": "Página home (hero + destacados)",
+      "status": "IN_PROGRESS",
+      "description": "Home con hero configurable y productos destacados. Hoy se nutre de datos estáticos y de la config del AdminContext (localStorage).",
+      "acceptance_criteria": [
+        "PROTOTIPO: muestra hero y grilla de destacados configurables desde el admin. [hecho]",
+        "PRODUCCIÓN: Server Component con ISR revalidate 300.",
+        "PRODUCCIÓN: banners activos filtrados por startsAt/endsAt desde la DB.",
+        "PRODUCCIÓN: productos destacados leídos de la DB (más recientes activos), no de un array estático."
+      ]
+    },
+    {
+      "id": "CAT-03",
+      "name": "Página de categoría con filtros",
+      "status": "IN_PROGRESS",
+      "description": "Listado de productos por categoría con navegación de subcategorías.",
+      "acceptance_criteria": [
+        "PROTOTIPO: lista productos de una categoría desde datos estáticos. [parcial]",
+        "PRODUCCIÓN: Server Component con ISR revalidate 300 y generateStaticParams para categorías de primer nivel.",
+        "PRODUCCIÓN: filtros de subcategoría y precio; paginación con searchParams.",
+        "PRODUCCIÓN: notFound() si la categoría no existe o está inactiva."
+      ]
+    },
+    {
+      "id": "CAT-04",
+      "name": "Ficha de producto",
+      "status": "IN_PROGRESS",
+      "description": "Página de detalle con galería de imágenes, especificaciones técnicas, agregar al carrito y calculadora de envío. Hoy con datos estáticos y URL por id numérico.",
+      "acceptance_criteria": [
+        "PROTOTIPO: galería, specs en tabla, botón agregar al carrito y bloque de envío. [hecho]",
+        "PRODUCCIÓN: URL por slug (no por id interno); Server Component con ISR 300 y generateStaticParams de los primeros 200 productos.",
+        "PRODUCCIÓN: generateMetadata para SEO dinámico (title, description, openGraph).",
+        "PRODUCCIÓN: structured data Product (precio en ARS, availability InStock/OutOfStock, brand, sku).",
+        "PRODUCCIÓN: imágenes vía Cloudinary transforms; botón WhatsApp con nombre precargado; productos relacionados.",
+        "PRODUCCIÓN: notFound() si el producto no existe, está inactivo o tiene deletedAt."
+      ]
+    },
+    {
+      "id": "CAT-05",
+      "name": "Skeletons y estados de carga del catálogo",
+      "status": "TODO",
+      "description": "Componentes Skeleton y loading.tsx/error.tsx en cada segmento de ruta del catálogo.",
+      "acceptance_criteria": [
+        "Existen ProductCardSkeleton, ProductGridSkeleton, ProductRowSkeleton, CategoryGridSkeleton y SearchBarSkeleton.",
+        "Cada boundary usa <Suspense fallback={<Skeleton />}>, nunca un spinner suelto.",
+        "loading.tsx y error.tsx presentes en home, categoría, producto y búsqueda.",
+        "not-found.tsx en /, /producto/[slug] y /categoria/[slug]."
+      ]
+    },
+    {
+      "id": "SEARCH-01",
+      "name": "Búsqueda de productos",
+      "status": "IN_PROGRESS",
+      "description": "Búsqueda fuzzy. Hoy implementada client-side (lib/search.ts) sobre el array estático; la spec exige API con pg_trgm.",
+      "acceptance_criteria": [
+        "PROTOTIPO: búsqueda fuzzy por nombre, marca, categoría y descripción con ranking. [hecho]",
+        "PRODUCCIÓN: GET /api/productos/buscar con params validados por Zod y rate limiting SEARCH.",
+        "PRODUCCIÓN: búsqueda fuzzy con pg_trgm en PostgreSQL.",
+        "PRODUCCIÓN: filtros categoria/precioMin/precioMax; respuesta { products, total, nextCursor } con paginación por cursor.",
+        "PRODUCCIÓN: la página de búsqueda es dinámica (searchParams), sin caché."
+      ]
+    },
+    {
+      "id": "CART-01",
+      "name": "Carrito de compras",
+      "status": "IN_PROGRESS",
+      "description": "Carrito con CartContext en localStorage. La spec exige carrito en DB para logueados, localStorage para anónimos, y merge al loguearse.",
+      "acceptance_criteria": [
+        "PROTOTIPO: agregar/quitar/actualizar cantidad y total, persistido en localStorage con hidratación segura. [hecho]",
+        "PRODUCCIÓN: logueados usan DB (carts + cart_items) vía Server Actions; anónimos usan localStorage + cookie de sesión.",
+        "PRODUCCIÓN: no se pueden agregar más unidades que el stock disponible; advertencia si el stock cambió.",
+        "PRODUCCIÓN: cada Server Action valida sesión y ownership y llama revalidatePath('/carrito').",
+        "PRODUCCIÓN: el carrito de un usuario no es accesible por otro.",
+        "PRODUCCIÓN: CartDrawer en el header con contador optimista; botón checkout deshabilitado con carrito vacío."
+      ]
+    },
+    {
+      "id": "CHECKOUT-01",
+      "name": "Flujo de checkout (formulario + envíos)",
+      "status": "IN_PROGRESS",
+      "description": "Página de checkout. Hoy es local: elige método de pago/envío y confirma sin backend. Falta el flujo de 4 pasos con cotización real y recálculo en servidor.",
+      "acceptance_criteria": [
+        "PROTOTIPO: selección de método de pago y envío con cálculo de total y confirmación. [hecho]",
+        "PRODUCCIÓN: pasos comprador → dirección → método de envío → pago; estado persistido en sessionStorage que sobrevive recargas.",
+        "PRODUCCIÓN: redirige si el carrito está vacío; datos del comprador prellenados si está logueado.",
+        "PRODUCCIÓN: validación Zod inline con error por campo al perder el foco.",
+        "PRODUCCIÓN: CP validado (exactamente 4 dígitos) dispara la cotización de envío."
+      ]
+    },
+    {
+      "id": "SHIP-01",
+      "name": "Cotización de envíos (Andreani + Correo Argentino)",
+      "status": "IN_PROGRESS",
+      "description": "Hoy hay una calculadora de envío con costos fijos en el frontend. La spec exige cotización real en paralelo a dos carriers, guardada con expiración.",
+      "acceptance_criteria": [
+        "PROTOTIPO: el usuario ve opciones de envío y su costo en producto/checkout. [parcial, costos fijos]",
+        "PRODUCCIÓN: quoteShipping llama en paralelo (Promise.all) a Andreani y Correo Argentino.",
+        "PRODUCCIÓN: si una API falla devuelve la otra; si ambas fallan lanza ShippingError.",
+        "PRODUCCIÓN: guarda cotizaciones en shipping_quotes con expiresAt = 30min; opciones ordenadas por precio.",
+        "PRODUCCIÓN: POST /api/envios/cotizar recalcula el total de items desde la DB, no del cliente; CP validado con Zod.",
+        "PRODUCCIÓN: las credenciales de los carriers solo viven en el servidor.",
+        "PRODUCCIÓN: ShippingSelector muestra skeleton, timeout de 10s y botón reintentar."
+      ]
+    },
+    {
+      "id": "PAY-01",
+      "name": "Creación de preferencia de MercadoPago (server)",
+      "status": "TODO",
+      "description": "POST /api/checkout/create-preference con el flujo de 12 pasos: recálculo de precios y stock en servidor antes de crear la orden y la preferencia.",
+      "acceptance_criteria": [
+        "Orden de seguridad: rate limiting CHECKOUT → validación Zod → recálculo de TODOS los precios desde la DB (nunca del cliente).",
+        "Verifica stock de cada item y que la cotización de envío no expiró; si algo falla antes del paso 9 la orden NO se crea.",
+        "Calcula total = items + envío en servidor; crea la orden en status 'pending' con orderNumber legible.",
+        "Crea la preferencia en MP con external_reference = orderId, expiración 30min y notification_url al webhook.",
+        "Guarda mpPreferenceId y devuelve { preferenceId, orderId, total }.",
+        "Manipular el precio desde el cliente no tiene efecto: se usa el precio de la DB."
+      ]
+    },
+    {
+      "id": "PAY-02",
+      "name": "MercadoPago Checkout Bricks (cliente)",
+      "status": "TODO",
+      "description": "Componente PaymentBricks embebido (no redirige a MP) inicializado con la public key.",
+      "acceptance_criteria": [
+        "Brick renderizado con preferenceId; skeleton del tamaño del formulario mientras carga.",
+        "Inicializa con NEXT_PUBLIC_MP_PUBLIC_KEY.",
+        "onError mapea códigos de MP a mensajes humanos (mp-error-messages.ts).",
+        "Botón con loading mientras MP procesa; no se expone ningún secreto al cliente."
+      ]
+    },
+    {
+      "id": "PAY-03",
+      "name": "Webhook de MercadoPago (crítico)",
+      "status": "TODO",
+      "description": "POST /api/webhooks/mercadopago: único lugar donde se confirma la orden y se descuenta stock. Flujo exacto e idempotente.",
+      "acceptance_criteria": [
+        "Valida la firma x-signature ANTES de cualquier operación; firma inválida es la única respuesta no-200 (401).",
+        "Guarda en payment_events (append-only) antes de cualquier lógica; verifica idempotencia por paymentId.",
+        "Consulta el pago en la API de MP (no confía en el status del webhook); obtiene la orden por external_reference.",
+        "approved: en transacción marca 'confirmed', guarda mpPaymentId, decrementa stock (active=false + revalidatePath si llega a 0), limpia el carrito y commitea; mail fire-and-forget fuera de la transacción.",
+        "rejected: marca 'cancelled' y guarda mpDetail. pending/in_process: queda 'pending' sin cambios.",
+        "SIEMPRE responde 200 al final (excepto firma inválida); errores se loggean pero no propagan 4xx/5xx.",
+        "Webhook duplicado con mismo paymentId: stock se descuenta y mail se envía una sola vez."
+      ]
+    },
+    {
+      "id": "PAY-04",
+      "name": "Página de resultado de la orden",
+      "status": "TODO",
+      "description": "app/(store)/orden/[id]/page.tsx: back_url de MP. Lee siempre el estado real de la DB.",
+      "acceptance_criteria": [
+        "Nunca confía en el query param de estado de MP: lee el estado real de la DB.",
+        "Verifica que la orden pertenece al usuario o al guestEmail.",
+        "Muestra contenido según estado: confirmed (resumen + próximos pasos), pending (procesando, aviso por mail), cancelled (error de pago traducido + reintentar).",
+        "Tras pago exitoso limpia el sessionStorage del checkout y usa replaceState para que 'atrás' no vuelva al checkout."
+      ]
+    },
+    {
+      "id": "PAY-05",
+      "name": "Cron de cancelación de órdenes pendientes",
+      "status": "TODO",
+      "description": "GET /api/cron/cancelar-ordenes-pendientes protegido por CRON_SECRET, configurado en vercel.json cada 5 minutos.",
+      "acceptance_criteria": [
+        "Solo acepta requests con header Authorization: Bearer CRON_SECRET; cualquier otro request es rechazado.",
+        "Cancela órdenes en 'pending' con más de 30 minutos de antigüedad.",
+        "Configurado en vercel.json con schedule */5 * * * *.",
+        "Una orden pending de >35min queda cancelada tras la corrida."
+      ]
+    },
+    {
+      "id": "MAIL-01",
+      "name": "Sistema de mails con idempotencia (Resend + React Email)",
+      "status": "TODO",
+      "description": "lib/mail con sendMail idempotente (mail_logs), 5 templates y funciones de dispatch.",
+      "acceptance_criteria": [
+        "sendMail verifica mail_logs por idempotencyKey = orderId + ':' + templateName; si ya existe no reenvía.",
+        "En desarrollo loggea el HTML a consola y no envía a Resend.",
+        "Templates OrderConfirmation, OrderShipped, OrderDelivered, PaymentFailed y WelcomeEmail: responsive, con logo, CTA como botón y precios en ARS con separadores de miles.",
+        "5 funciones dispatch tipadas que leen los datos de la DB antes de enviar; errores se loggean y nunca se propagan (fire-and-forget).",
+        "Webhook duplicado: el mail de confirmación se envía una sola vez.",
+        "Hooks correctos: OrderConfirmation/PaymentFailed en el webhook, WelcomeEmail en signIn (solo isNewUser), OrderShipped/OrderDelivered en Server Actions del admin."
+      ]
+    },
+    {
+      "id": "ADMIN-01",
+      "name": "Panel admin: gestión de productos (prototipo)",
+      "status": "IN_PROGRESS",
+      "description": "Listado y formulario de productos (nuevo/editar) en /admin/productos, hoy operando sobre AdminContext en localStorage (overrides, nuevos, ocultos).",
+      "acceptance_criteria": [
+        "PROTOTIPO: listado con búsqueda y formulario de alta/edición/borrado persistido en localStorage. [hecho]",
+        "PRODUCCIÓN: listado paginado server-side con filtro por categoría y estado, y toggle activo/inactivo inline.",
+        "PRODUCCIÓN: formulario completo (nombre→slug auto editable, SKU, código de barras, marca, categoría en árbol, precio en pesos, comparativo, stock, descripción, specs key/value dinámicas, imágenes múltiples reordenables con principal).",
+        "PRODUCCIÓN: si stock llega a 0 al guardar fuerza active=false con advertencia; slug duplicado agrega el SKU.",
+        "PRODUCCIÓN: validación Zod inline + en Server Action (fuente de verdad); revalidatePath al guardar.",
+        "PRODUCCIÓN: protegido por requireRole('admin')."
+      ]
+    },
+    {
+      "id": "ADMIN-02",
+      "name": "Panel admin: dashboard (prototipo)",
+      "status": "IN_PROGRESS",
+      "description": "Dashboard /admin con accesos directos y métricas. Hoy en /admin/reportes/page con conteos sobre datos en memoria.",
+      "acceptance_criteria": [
+        "PROTOTIPO: muestra conteos de productos por estado y accesos a secciones. [parcial]",
+        "PRODUCCIÓN: Server Component con revalidación 60s y métricas del día (órdenes nuevas confirmed+processing, ingresos, pendientes de procesar).",
+        "PRODUCCIÓN: accesos directos a catálogo, órdenes y banners.",
+        "PRODUCCIÓN: protegido por requireRole('admin')."
+      ]
+    },
+    {
+      "id": "ADMIN-03",
+      "name": "Panel admin: hero y secciones destacadas (prototipo)",
+      "status": "IN_PROGRESS",
+      "description": "Configuración de hero (imagen, título, CTA) y de la sección de destacados desde el admin, hoy en localStorage.",
+      "acceptance_criteria": [
+        "PROTOTIPO: editar hero y elegir productos destacados con persistencia en localStorage. [hecho]",
+        "PRODUCCIÓN: la configuración se persiste en DB (banners/pages/StoreSettings) y revalida el ISR de la home al guardar.",
+        "PRODUCCIÓN: protegido por requireRole('admin')."
+      ]
+    },
+    {
+      "id": "ADMIN-04",
+      "name": "Panel admin: categorías",
+      "status": "TODO",
+      "description": "/admin/categorias con vista de árbol de 2 niveles para crear, editar y reordenar.",
+      "acceptance_criteria": [
+        "Vista de árbol de hasta 2 niveles; crear, editar y reordenar categorías.",
+        "No permite borrar una categoría con productos asignados (error claro).",
+        "Guardar revalida el caché ISR de las páginas afectadas.",
+        "Protegido por requireRole('admin')."
+      ]
+    },
+    {
+      "id": "ADMIN-05",
+      "name": "Panel admin: banners",
+      "status": "TODO",
+      "description": "/admin/banners con CRUD, preview de imagen y scheduling.",
+      "acceptance_criteria": [
+        "CRUD de banners con campos título, imagen (Cloudinary), link, orden, activo, startsAt y endsAt.",
+        "Preview de cómo se ve el banner antes de guardar.",
+        "Protegido por requireRole('admin')."
+      ]
+    },
+    {
+      "id": "ADMIN-06",
+      "name": "Panel admin: gestión de órdenes y transiciones de estado",
+      "status": "TODO",
+      "description": "/admin/ordenes con listado, detalle y Server Actions que validan transiciones de estado.",
+      "acceptance_criteria": [
+        "Listado con filtros por estado y fecha, búsqueda por número/email, paginación server-side y revalidación 60s.",
+        "Detalle con items, datos del comprador, dirección, timeline de estados e historial de payment_events.",
+        "Server Actions markAsProcessing/markAsShipped/markAsDelivered/cancelOrder con requireRole('admin').",
+        "Solo se permiten las transiciones válidas (confirmed→processing→shipped→delivered, cancel desde pending/confirmed); cualquier otra se rechaza con error claro.",
+        "markAsShipped requiere trackingNumber y carrier y dispara sendOrderShipped; cancelOrder nunca procede si el pago fue aprobado en MP.",
+        "Cada acción loggea quién, cuándo, estado anterior y nuevo; botones habilitados solo si la transición es válida, con modal de confirmación en acciones irreversibles."
+      ]
+    },
+    {
+      "id": "CLOUD-01",
+      "name": "Uploads firmados a Cloudinary",
+      "status": "DONE",
+      "description": "POST /api/admin/cloudinary/sign para upload directo firmado y helper de transformaciones por URL.",
+      "acceptance_criteria": [
+        "El endpoint requiere requireRole('admin') y firma con CLOUDINARY_API_SECRET en el servidor.",
+        "Devuelve { signature, timestamp, cloudName, apiKey }; el cliente sube directo a Cloudinary.",
+        "CLOUDINARY_API_SECRET nunca se expone al cliente.",
+        "lib/cloudinary/transforms.ts provee thumbnail/card/gallery/zoom y cloudinaryUrl(publicId, transform)."
+      ]
+    },
+    {
+      "id": "ACCOUNT-01",
+      "name": "Cuenta del cliente: perfil y cambio de password",
+      "status": "TODO",
+      "description": "/cuenta/perfil con edición de datos y cambio de password seguro.",
+      "acceptance_criteria": [
+        "Edición de nombre; el email no es editable para usuarios de Google OAuth (passwordHash null).",
+        "El cambio de password solo aparece para usuarios con credentials.",
+        "Valida el password actual (bcrypt.compare timing-safe); mismo mensaje genérico si es incorrecto o el usuario no existe.",
+        "Nueva password mínimo 8 caracteres, hasheada con bcrypt 12 rounds; invalida sesiones activas tras el cambio.",
+        "passwordHash nunca se devuelve al cliente."
+      ]
+    },
+    {
+      "id": "ACCOUNT-02",
+      "name": "Cuenta del cliente: historial y detalle de órdenes",
+      "status": "TODO",
+      "description": "/cuenta/ordenes y /cuenta/ordenes/[id] con verificación estricta de ownership.",
+      "acceptance_criteria": [
+        "El historial filtra SIEMPRE por userId === session.user.id, paginado por cursor (10 por página) con badges de estado.",
+        "El detalle verifica ownership; si la orden no es del usuario devuelve notFound() (no 403, para no revelar existencia).",
+        "Muestra items, dirección, estado y trackingNumber con link al carrier; mpDetail traducido con mp-error-messages.ts.",
+        "Manipular el id en la URL para acceder a una orden ajena devuelve 404."
+      ]
+    },
+    {
+      "id": "LAUNCH-01",
+      "name": "Importación masiva de productos desde Excel",
+      "status": "TODO",
+      "description": "scripts/generate-categories.ts y scripts/import-products.ts para cargar los +5.000 productos del Excel existente.",
+      "acceptance_criteria": [
+        "generate-categories.ts inserta las categorías predefinidas si no existen (ejecutar primero).",
+        "import-products.ts extrae precio con regex del campo Producto, limpia el nombre, mapea Código→SKU y Departamento→brand.",
+        "Categorización automática por palabras clave; lo que no matchea va a 'sin-categorizar'.",
+        "Inserción en lotes de 100 con ON CONFLICT (sku) DO UPDATE; slug único agregando SKU ante conflicto.",
+        "Filas sin precio se saltan y se loggean en import-errors.log; genera import-report.txt con totales (procesadas/insertados/actualizados/errores)."
+      ]
+    },
+    {
+      "id": "LAUNCH-02",
+      "name": "SEO: sitemap, robots y structured data",
+      "status": "TODO",
+      "description": "Generación dinámica de sitemap, robots con rutas bloqueadas y datos estructurados.",
+      "acceptance_criteria": [
+        "app/sitemap.ts genera dinámicamente categorías y productos activos, máx 50.000 URLs, con prioridades home 1.0 / categorías 0.8 / productos 0.6.",
+        "app/robots.ts bloquea /admin, /api, /cuenta, /checkout, /login y /registro.",
+        "Structured data Product en la ficha (con breadcrumbs) y WebSite con SearchAction en la home."
+      ]
+    },
+    {
+      "id": "LAUNCH-03",
+      "name": "Auditoría de seguridad y configuración de deploy",
+      "status": "TODO",
+      "description": "Checklist completo de seguridad pre-lanzamiento y configuración de Vercel.",
+      "acceptance_criteria": [
+        "Ningún endpoint devuelve datos de otros usuarios; órdenes siempre filtradas por userId; orden ajena devuelve 404.",
+        "Precios del checkout recalculados en servidor; stock se descuenta solo en el webhook; firma de MP validada antes de operar.",
+        "Rate limiting verificado (5 logins/15m, 60 req/min en API); tokens de NextAuth y admin no se mezclan.",
+        "passwordHash, MP_ACCESS_TOKEN y claves de Cloudinary/carriers nunca accesibles desde el cliente; .env fuera del repo.",
+        "Security headers activos y HTTPS forzado sin mixed content.",
+        "vercel.json con cron cada 5min y maxDuration 30 en el webhook; README documenta scripts, env vars y diferencia sandbox/producción de MP."
+      ]
+    },
+    {
+      "id": "QUALITY-01",
+      "name": "Calidad transversal: TypeScript estricto y UX de estados",
+      "status": "IN_PROGRESS",
+      "description": "Reglas globales de CLAUDE.md aplicadas a todo el código: TS estricto sin any, Server Components por defecto, y feedback de estado al usuario.",
+      "acceptance_criteria": [
+        "tsconfig con strict, noUncheckedIndexedAccess, noImplicitReturns y exactOptionalPropertyTypes; compila sin errores.",
+        "Sin any ni 'as unknown as X' no documentado; props tipadas con interfaces explícitas.",
+        "Server Components por defecto; 'use client' solo con interactividad real; sin useEffect para fetching (Server Components o SWR).",
+        "Toda carga muestra Skeleton en Suspense; toda acción deshabilita el botón con estado visual; errores de validación inline por campo.",
+        "Ningún flujo termina en pantalla en blanco: los errores son siempre visibles al usuario."
+      ]
+    }
+  ]
+}
