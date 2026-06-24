@@ -1,0 +1,192 @@
+import { and, desc, eq, sql } from 'drizzle-orm'
+import { db, type DbOrTx } from '@/lib/db'
+import { orders, orderItems } from '@/lib/db/schemas'
+import type {
+  Order,
+  OrderItem,
+  OrderStatus,
+  ShippingAddress,
+} from '@/lib/db/types'
+import { AppError } from '@/lib/errors'
+import { encodeCursor, decodeCursor, cursorCondition } from './_cursor'
+
+/** Transiciones de estado permitidas (06-admin.md). */
+export const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['processing', 'cancelled', 'refunded'],
+  processing: ['shipped', 'cancelled'],
+  shipped: ['delivered'],
+  delivered: [],
+  cancelled: [],
+  refunded: [],
+}
+
+export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
+  return from === to || VALID_TRANSITIONS[from].includes(to)
+}
+
+export type CreateOrderItem = {
+  productId: string
+  productName: string
+  productSku: string | null
+  quantity: number
+  unitPrice: number
+  subtotal: number
+}
+
+export type CreateOrderData = {
+  userId?: string | null
+  guestEmail?: string | null
+  guestName?: string | null
+  subtotal: number
+  shippingCost: number
+  total: number
+  shippingAddress: ShippingAddress
+  shippingMethod?: string | null
+  shippingCarrier?: string | null
+  items: CreateOrderItem[]
+}
+
+async function nextOrderNumber(executor: DbOrTx): Promise<string> {
+  const year = new Date().getFullYear()
+  const [{ count }] = await executor
+    .select({ count: sql<number>`count(*)::int` })
+    .from(orders)
+    .where(sql`extract(year from ${orders.createdAt}) = ${year}`)
+  const seq = String((count ?? 0) + 1).padStart(4, '0')
+  return `FE-${year}-${seq}`
+}
+
+/** Crea una orden en 'pending' con su número legible y sus items, en transacción. */
+export async function createOrder(
+  data: CreateOrderData,
+): Promise<Order & { items: OrderItem[] }> {
+  return db.transaction(async (tx) => {
+    const orderNumber = await nextOrderNumber(tx)
+    const [order] = await tx
+      .insert(orders)
+      .values({
+        orderNumber,
+        userId: data.userId ?? null,
+        guestEmail: data.guestEmail ?? null,
+        guestName: data.guestName ?? null,
+        status: 'pending',
+        subtotal: data.subtotal,
+        shippingCost: data.shippingCost,
+        total: data.total,
+        shippingAddress: data.shippingAddress,
+        shippingMethod: data.shippingMethod ?? null,
+        shippingCarrier: data.shippingCarrier ?? null,
+      })
+      .returning()
+
+    if (!order) throw new AppError('No se pudo crear la orden', 'ORDER_CREATE_FAILED', 500, false)
+
+    const items = await tx
+      .insert(orderItems)
+      .values(data.items.map((it) => ({ ...it, orderId: order.id })))
+      .returning()
+
+    return { ...order, items }
+  })
+}
+
+export type UpdateOrderExtra = Partial<
+  Pick<
+    Order,
+    | 'trackingNumber'
+    | 'shippingCarrier'
+    | 'mpPaymentId'
+    | 'mpPreferenceId'
+    | 'mpStatus'
+    | 'mpDetail'
+  >
+>
+
+/**
+ * Actualiza el estado de una orden validando la transición. Lanza AppError si
+ * la transición no es válida. Acepta un executor para usarse dentro del webhook.
+ */
+export async function updateOrderStatus(
+  orderId: string,
+  status: OrderStatus,
+  extra: UpdateOrderExtra = {},
+  executor: DbOrTx = db,
+): Promise<Order> {
+  const [current] = await executor
+    .select({ status: orders.status })
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1)
+
+  if (!current) throw new AppError('Orden no encontrada', 'ORDER_NOT_FOUND', 404)
+  if (!canTransition(current.status, status)) {
+    throw new AppError(
+      `Transición de estado inválida: ${current.status} → ${status}`,
+      'INVALID_ORDER_TRANSITION',
+      422,
+    )
+  }
+
+  const [updated] = await executor
+    .update(orders)
+    .set({ status, ...extra })
+    .where(eq(orders.id, orderId))
+    .returning()
+
+  if (!updated) throw new AppError('Orden no encontrada', 'ORDER_NOT_FOUND', 404)
+  return updated
+}
+
+export type OrderWithItems = Order & { items: OrderItem[] }
+
+/** Orden por id verificando ownership por userId. Null si no es del usuario. */
+export async function getOrderById(
+  orderId: string,
+  userId: string,
+): Promise<OrderWithItems | null> {
+  const [order] = await db
+    .select()
+    .from(orders)
+    .where(and(eq(orders.id, orderId), eq(orders.userId, userId)))
+    .limit(1)
+
+  if (!order) return null
+
+  const items = await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, order.id))
+
+  return { ...order, items }
+}
+
+export type OrderListPage = { orders: Order[]; nextCursor: string | null }
+
+/** Historial de órdenes del usuario, paginado por cursor (filtrado por userId). */
+export async function getOrdersByUser(
+  userId: string,
+  cursor?: string | null,
+  limit = 10,
+): Promise<OrderListPage> {
+  const conds = [eq(orders.userId, userId)]
+  const decoded = decodeCursor(cursor)
+  if (decoded) {
+    const c = cursorCondition(orders.createdAt, orders.id, decoded)
+    if (c) conds.push(c)
+  }
+
+  const rows = await db
+    .select()
+    .from(orders)
+    .where(and(...conds))
+    .orderBy(desc(orders.createdAt), desc(orders.id))
+    .limit(limit + 1)
+
+  const hasMore = rows.length > limit
+  const page = hasMore ? rows.slice(0, limit) : rows
+  const last = page.at(-1)
+  const nextCursor = hasMore && last ? encodeCursor(last.createdAt, last.id) : null
+
+  return { orders: page, nextCursor }
+}
