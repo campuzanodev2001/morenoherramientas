@@ -1,54 +1,44 @@
-'use client'
-
 import Link from 'next/link'
-import { useState } from 'react'
-import { useAdmin } from '@/app/context/AdminContext'
+import { listProductsAdmin } from '@/lib/db/queries/admin-products'
+import { listCategoriesFlat } from '@/lib/db/queries/admin-categories'
+import ProductsFilterBar from './ProductsFilterBar'
+import ProductRowActions from './ProductRowActions'
 
-const STOCK_LABELS: Record<string, string> = {
-  available: 'Disponible',
-  low: 'Poco stock',
-  out: 'Sin stock',
+export const dynamic = 'force-dynamic'
+
+function formatPrice(cents: number): string {
+  return '$' + (cents / 100).toLocaleString('es-AR')
 }
 
-const STOCK_COLORS: Record<string, string> = {
-  available: 'bg-green-100 text-green-800',
-  low: 'bg-yellow-100 text-yellow-800',
-  out: 'bg-red-100 text-red-800',
-}
+export default async function ProductsAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const sp = await searchParams
+  const search = typeof sp.q === 'string' ? sp.q : ''
+  const categoryId = typeof sp.cat === 'string' && sp.cat ? sp.cat : undefined
+  const estado = typeof sp.estado === 'string' ? sp.estado : ''
+  const active = estado === 'activos' ? true : estado === 'inactivos' ? false : undefined
+  const page = Number(sp.page) > 0 ? Number(sp.page) : 1
 
-export default function ProductsAdminPage() {
-  const { allProducts, config, deleteProduct } = useAdmin()
-  const [search, setSearch] = useState('')
-  const [groupFilter, setGroupFilter] = useState('')
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null)
+  const [data, categories] = await Promise.all([
+    listProductsAdmin({ search, categoryId, active, page }),
+    listCategoriesFlat(),
+  ])
 
-  const groups = [...new Set(allProducts.map((p) => p.group))]
+  const categoryOptions = categories.map((c) => ({
+    id: c.id,
+    label: `${'— '.repeat(c.depth)}${c.name}`,
+  }))
 
-  const filtered = allProducts.filter((p) => {
-    const matchesSearch =
-      !search ||
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.brand.toLowerCase().includes(search.toLowerCase()) ||
-      p.sku.toLowerCase().includes(search.toLowerCase())
-    const matchesGroup = !groupFilter || p.group === groupFilter
-    return matchesSearch && matchesGroup
-  })
-
-  function isAdminAdded(productId: number) {
-    return config.newProducts.some((p) => p.id === productId)
-  }
-
-  function isModified(productId: number) {
-    return config.productOverrides.some((o) => o.id === productId)
-  }
-
-  function handleDelete(id: number) {
-    if (confirmDelete === id) {
-      deleteProduct(id)
-      setConfirmDelete(null)
-    } else {
-      setConfirmDelete(id)
-    }
+  function pageHref(p: number): string {
+    const params = new URLSearchParams()
+    if (search) params.set('q', search)
+    if (categoryId) params.set('cat', categoryId)
+    if (estado) params.set('estado', estado)
+    params.set('page', String(p))
+    return `/admin/productos?${params}`
   }
 
   return (
@@ -56,9 +46,7 @@ export default function ProductsAdminPage() {
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-black text-on-surface uppercase tracking-tight">Productos</h1>
-          <p className="text-on-surface-variant text-sm font-medium">
-            {filtered.length} de {allProducts.length} productos
-          </p>
+          <p className="text-on-surface-variant text-sm font-medium">{data.total} productos</p>
         </div>
         <Link
           href="/admin/productos/nuevo"
@@ -69,134 +57,97 @@ export default function ProductsAdminPage() {
         </Link>
       </div>
 
-      <div className="flex gap-2 flex-col md:flex-row">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre, marca o SKU..."
-          className="border-2 border-outline px-3 py-2.5 text-sm font-medium text-on-surface bg-surface focus:outline-none focus:border-primary-container flex-1"
-        />
-        <select
-          value={groupFilter}
-          onChange={(e) => setGroupFilter(e.target.value)}
-          className="border-2 border-outline px-3 py-2.5 text-sm font-medium text-on-surface bg-surface focus:outline-none focus:border-primary-container md:w-64"
-        >
-          <option value="">Todos los grupos</option>
-          {groups.map((g) => (
-            <option key={g} value={g}>
-              {g}
-            </option>
-          ))}
-        </select>
-      </div>
+      <ProductsFilterBar
+        initialSearch={search}
+        initialCategory={categoryId ?? ''}
+        initialEstado={estado}
+        categories={categoryOptions}
+      />
 
       <div className="w-full bg-surface-container-lowest border border-surface-container overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b-2 border-primary-container">
-              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider">
-                Producto
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider hidden md:table-cell">
-                Grupo
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider">
-                Precio
-              </th>
-              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider hidden sm:table-cell">
-                Stock
-              </th>
-              <th className="px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider text-right">
-                Acciones
-              </th>
+              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider">Producto</th>
+              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider hidden md:table-cell">Categoría</th>
+              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider">Precio</th>
+              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider hidden sm:table-cell">Stock</th>
+              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider">Estado</th>
+              <th className="px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider text-right">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-container">
-            {filtered.map((product) => (
-              <tr key={product.id} className="hover:bg-surface transition-colors duration-100">
+            {data.rows.map((p) => (
+              <tr key={p.id} className="hover:bg-surface transition-colors duration-100">
                 <td className="px-4 py-3">
-                  <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-black text-on-surface text-xs uppercase truncate max-w-[200px]">
-                        {product.name}
+                  <div className="flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={p.primaryImageUrl ?? '/file.svg'}
+                      alt=""
+                      className="w-10 h-10 object-cover bg-surface-container shrink-0"
+                    />
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="font-black text-on-surface text-xs uppercase truncate max-w-[200px]">{p.name}</span>
+                      <span className="text-on-surface-variant text-xs font-medium">
+                        {p.brand ?? '—'} · {p.sku ?? 's/sku'}
                       </span>
-                      {isAdminAdded(product.id) && (
-                        <span className="text-[10px] font-bold bg-primary-container text-on-primary px-1.5 py-0.5 uppercase shrink-0">
-                          Nuevo
-                        </span>
-                      )}
-                      {isModified(product.id) && !isAdminAdded(product.id) && (
-                        <span className="text-[10px] font-bold bg-yellow-500 text-white px-1.5 py-0.5 uppercase shrink-0">
-                          Editado
-                        </span>
-                      )}
                     </div>
-                    <span className="text-on-surface-variant text-xs font-medium">
-                      {product.brand} · {product.sku}
-                    </span>
                   </div>
                 </td>
                 <td className="px-4 py-3 hidden md:table-cell">
-                  <span className="text-xs font-bold text-on-surface-variant uppercase">
-                    {product.group}
-                  </span>
+                  <span className="text-xs font-bold text-on-surface-variant uppercase">{p.categoryName ?? '—'}</span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-accent-red font-black text-sm">{product.price}</span>
+                  <span className="text-accent-red font-black text-sm">{formatPrice(p.price)}</span>
                 </td>
                 <td className="px-4 py-3 hidden sm:table-cell">
+                  <span className={`text-xs font-bold ${p.stock === 0 ? 'text-accent-red' : 'text-on-surface'}`}>{p.stock}</span>
+                </td>
+                <td className="px-4 py-3">
                   <span
-                    className={`text-xs font-bold px-2 py-1 uppercase ${STOCK_COLORS[product.stock]}`}
+                    className={`text-xs font-bold px-2 py-1 uppercase ${
+                      p.active ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'
+                    }`}
                   >
-                    {STOCK_LABELS[product.stock]}
+                    {p.active ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <Link
-                      href={`/admin/productos/${product.id}`}
-                      className="text-on-surface-variant hover:text-primary-container p-1.5 transition-colors duration-150"
-                      title="Editar"
-                    >
-                      <span className="material-symbols-outlined text-lg">edit</span>
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(product.id)}
-                      className={`p-1.5 transition-colors duration-150 ${
-                        confirmDelete === product.id
-                          ? 'text-on-primary bg-accent-red'
-                          : 'text-on-surface-variant hover:text-accent-red'
-                      }`}
-                      title={
-                        confirmDelete === product.id ? 'Confirmar eliminación' : 'Eliminar'
-                      }
-                    >
-                      <span className="material-symbols-outlined text-lg">
-                        {confirmDelete === product.id ? 'warning' : 'delete'}
-                      </span>
-                    </button>
-                    {confirmDelete === product.id && (
-                      <button
-                        onClick={() => setConfirmDelete(null)}
-                        className="text-on-surface-variant hover:text-on-surface p-1.5 transition-colors duration-150"
-                        title="Cancelar"
-                      >
-                        <span className="material-symbols-outlined text-lg">close</span>
-                      </button>
-                    )}
-                  </div>
+                  <ProductRowActions id={p.id} active={p.active} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && (
+        {data.rows.length === 0 && (
           <div className="py-12 text-center text-on-surface-variant text-sm font-medium">
             No se encontraron productos
           </div>
         )}
       </div>
+
+      {data.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3">
+          {page > 1 ? (
+            <Link href={pageHref(page - 1)} className="text-xs font-black uppercase text-primary-container hover:underline">
+              ← Anterior
+            </Link>
+          ) : (
+            <span className="text-xs font-black uppercase text-on-surface-variant/40">← Anterior</span>
+          )}
+          <span className="text-xs font-bold text-on-surface-variant">
+            Página {page} de {data.totalPages}
+          </span>
+          {page < data.totalPages ? (
+            <Link href={pageHref(page + 1)} className="text-xs font-black uppercase text-primary-container hover:underline">
+              Siguiente →
+            </Link>
+          ) : (
+            <span className="text-xs font-black uppercase text-on-surface-variant/40">Siguiente →</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
