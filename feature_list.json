@@ -154,7 +154,7 @@
     {
       "id": "ADMIN-AUTH",
       "name": "Login del panel admin (prototipo)",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Login de /admin con password hardcodeada ('moreno2024') y sesión en sessionStorage. Sirve de prototipo; la spec exige auth real de Payload/servidor separada de NextAuth.",
       "acceptance_criteria": [
         "PROTOTIPO: el formulario valida la password y guarda sesión, mostrando error si es incorrecta. [hecho]",
@@ -361,7 +361,7 @@
     {
       "id": "ADMIN-01",
       "name": "Panel admin: gestión de productos (prototipo)",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Listado y formulario de productos (nuevo/editar) en /admin/productos, hoy operando sobre AdminContext en localStorage (overrides, nuevos, ocultos).",
       "acceptance_criteria": [
         "PROTOTIPO: listado con búsqueda y formulario de alta/edición/borrado persistido en localStorage. [hecho]",
@@ -375,7 +375,7 @@
     {
       "id": "ADMIN-02",
       "name": "Panel admin: dashboard (prototipo)",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Dashboard /admin con accesos directos y métricas. Hoy en /admin/reportes/page con conteos sobre datos en memoria.",
       "acceptance_criteria": [
         "PROTOTIPO: muestra conteos de productos por estado y accesos a secciones. [parcial]",
