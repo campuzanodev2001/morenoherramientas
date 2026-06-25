@@ -227,7 +227,7 @@
     {
       "id": "SEARCH-01",
       "name": "Búsqueda de productos",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Búsqueda fuzzy. Hoy implementada client-side (lib/search.ts) sobre el array estático; la spec exige API con pg_trgm.",
       "acceptance_criteria": [
         "PROTOTIPO: búsqueda fuzzy por nombre, marca, categoría y descripción con ranking. [hecho]",
