@@ -267,7 +267,7 @@
     {
       "id": "SHIP-01",
       "name": "Cotización de envíos (Andreani + Correo Argentino)",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Hoy hay una calculadora de envío con costos fijos en el frontend. La spec exige cotización real en paralelo a dos carriers, guardada con expiración.",
       "acceptance_criteria": [
         "PROTOTIPO: el usuario ve opciones de envío y su costo en producto/checkout. [parcial, costos fijos]",

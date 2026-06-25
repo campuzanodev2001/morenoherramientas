@@ -1,4 +1,4 @@
-import { and, desc, eq, getTableColumns, ilike, isNull, or, sql } from 'drizzle-orm'
+import { and, desc, eq, getTableColumns, ilike, inArray, isNull, or, sql } from 'drizzle-orm'
 import { db, type DbOrTx } from '@/lib/db'
 import { products, productImages, categories } from '@/lib/db/schemas'
 import type { Product, ProductImage, Category } from '@/lib/db/types'
@@ -113,6 +113,22 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
     .where(and(...visibleConds()))
     .orderBy(desc(products.createdAt), desc(products.id))
     .limit(Math.min(limit, MAX_LIMIT))
+}
+
+/**
+ * Productos activos para una lista de ids, indexados por id. Se usa para
+ * RECALCULAR precios y verificar stock en el servidor durante el checkout:
+ * nunca confiar en el precio que envía el cliente.
+ */
+export async function getActiveProductsByIds(ids: string[]): Promise<Map<string, Product>> {
+  const map = new Map<string, Product>()
+  if (ids.length === 0) return map
+  const rows = await db
+    .select()
+    .from(products)
+    .where(and(inArray(products.id, ids), ...visibleConds()))
+  for (const row of rows) map.set(row.id, row)
+  return map
 }
 
 /**
