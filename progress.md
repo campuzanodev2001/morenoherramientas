@@ -17,8 +17,9 @@
 | Infraestructura (env, errores, rate limit, middleware, observabilidad) | ✅ Completo |
 | Base de datos (schemas + queries) | ✅ Completo |
 | Autenticación + uploads | ✅ Completo |
-| Panel admin sobre DB | ⏳ Pendiente |
-| Catálogo público + búsqueda | ⏳ Pendiente |
+| Panel admin sobre DB (auth, productos, dashboard, categorías, banners, hero/secciones) | ✅ Completo |
+| Búsqueda fuzzy pg_trgm (API) | ✅ Completo |
+| Catálogo público UI sobre DB (home/categoría/producto/buscar) | ⏳ Pendiente |
 | Carrito / checkout / envíos | ⏳ Pendiente |
 | MercadoPago + webhook | ⏳ Pendiente |
 | Mails transaccionales | ⏳ Pendiente |
@@ -27,7 +28,18 @@
 | Importación / SEO / deploy | ⏳ Pendiente |
 | Hardening TypeScript estricto | ⏳ Pendiente |
 
-**Completadas: 11 features.** Todas compilan y pasan `next build`.
+**Completadas: 17 features** (INFRA-02..07, DB-01/02, AUTH-01/02, CLOUD-01, ADMIN-AUTH/01..05, SEARCH-01).
+Todas compilan, pasan `next build` y están commiteadas una por una (`feat: ...`).
+
+### Nota sobre el panel admin (commits posteriores)
+Se migró `/admin` de localStorage/sessionStorage a DB:
+- Auth real con NextAuth `requireRole('admin')` (eliminada la password hardcodeada).
+- Productos: listado con filtros, toggle activo, form con Cloudinary firmado, specs, slug único, Server Actions.
+- Dashboard con métricas reales; categorías (árbol 2 niveles, borrado bloqueado); banners (scheduling); hero/secciones persistidos en `pages`.
+- El storefront (home) sigue leyendo de `AdminContext`/estático hasta CAT; por eso los cambios del admin todavía no se reflejan en la home (no rompe nada, es interino).
+
+### Nota sobre búsqueda (SEARCH-01)
+API `/api/productos/buscar` con pg_trgm + índice GIN ya funcionando. La página `/buscar` se reconectará al API durante la migración de UI del catálogo.
 
 ---
 
