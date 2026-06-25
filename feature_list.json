@@ -254,7 +254,7 @@
     {
       "id": "CHECKOUT-01",
       "name": "Flujo de checkout (formulario + envíos)",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Página de checkout. Hoy es local: elige método de pago/envío y confirma sin backend. Falta el flujo de 4 pasos con cotización real y recálculo en servidor.",
       "acceptance_criteria": [
         "PROTOTIPO: selección de método de pago y envío con cálculo de total y confirmación. [hecho]",
