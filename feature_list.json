@@ -398,7 +398,7 @@
     {
       "id": "ADMIN-04",
       "name": "Panel admin: categorías",
-      "status": "TODO",
+      "status": "DONE",
       "description": "/admin/categorias con vista de árbol de 2 niveles para crear, editar y reordenar.",
       "acceptance_criteria": [
         "Vista de árbol de hasta 2 niveles; crear, editar y reordenar categorías.",
@@ -410,7 +410,7 @@
     {
       "id": "ADMIN-05",
       "name": "Panel admin: banners",
-      "status": "TODO",
+      "status": "DONE",
       "description": "/admin/banners con CRUD, preview de imagen y scheduling.",
       "acceptance_criteria": [
         "CRUD de banners con campos título, imagen (Cloudinary), link, orden, activo, startsAt y endsAt.",
