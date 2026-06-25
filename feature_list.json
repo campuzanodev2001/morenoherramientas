@@ -240,7 +240,7 @@
     {
       "id": "CART-01",
       "name": "Carrito de compras",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Carrito con CartContext en localStorage. La spec exige carrito en DB para logueados, localStorage para anónimos, y merge al loguearse.",
       "acceptance_criteria": [
         "PROTOTIPO: agregar/quitar/actualizar cantidad y total, persistido en localStorage con hidratación segura. [hecho]",

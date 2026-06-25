@@ -20,7 +20,7 @@
 | Panel admin sobre DB (auth, productos, dashboard, categorías, banners, hero/secciones) | ✅ Completo |
 | Búsqueda fuzzy pg_trgm (API + página) | ✅ Completo |
 | Catálogo público UI sobre DB (home/categoría/producto/buscar) | ✅ Completo |
-| Carrito (reshape a DB shape, localStorage) | 🟡 Parcial (falta carrito DB + merge en CART-01) |
+| Carrito (DB para logueados + localStorage/cookie anónimo, merge al loguearse, CartDrawer) | ✅ Completo (CART-01) |
 | Checkout / envíos | ⏳ Pendiente |
 | MercadoPago + webhook | ⏳ Pendiente |
 | Mails transaccionales | ⏳ Pendiente |

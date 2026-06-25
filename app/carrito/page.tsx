@@ -8,7 +8,7 @@ import CartHeader from '@/app/components/CartHeader'
 import { formatPrice } from '@/lib/catalog/format'
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, clearCart, totalPrice } = useCart()
+  const { items, removeItem, updateQuantity, clearCart, totalPrice, stockWarnings } = useCart()
 
   return (
     <>
@@ -92,6 +92,13 @@ export default function CartPage() {
                     <span className="text-accent-red text-lg font-black leading-none mt-1">
                       {formatPrice(product.price * quantity)}
                     </span>
+                    {stockWarnings.has(product.id) && (
+                      <span className="mt-1 flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-accent-red">
+                        <span className="material-symbols-outlined text-sm">warning</span>
+                        Stock cambió: solo {product.stock} disponible
+                        {product.stock === 1 ? '' : 's'}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex flex-col items-end gap-3 flex-shrink-0">
@@ -116,7 +123,8 @@ export default function CartPage() {
                       </span>
                       <button
                         onClick={() => updateQuantity(product.id, quantity + 1)}
-                        className="w-8 h-8 flex items-center justify-center text-on-surface font-black hover:bg-accent-red hover:text-on-primary transition-colors"
+                        disabled={quantity >= product.stock}
+                        className="w-8 h-8 flex items-center justify-center text-on-surface font-black hover:bg-accent-red hover:text-on-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         aria-label="Aumentar cantidad"
                       >
                         <span className="material-symbols-outlined text-base">add</span>

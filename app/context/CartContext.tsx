@@ -1,17 +1,24 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useSession } from 'next-auth/react'
+import type { CartProductRef } from '@/lib/db/queries/cart'
+import {
+  addToCartAction,
+  clearCartAction,
+  getCartAction,
+  mergeAnonymousCartAction,
+  removeCartItemAction,
+  setCartItemAction,
+} from '@/lib/cart/actions'
+import {
+  clearAnonCart,
+  readAnonCart,
+  writeAnonCart,
+  type AnonCartItem,
+} from '@/lib/cart/anonymous-cart'
 
-/** Referencia mínima y serializable de un producto en el carrito. */
-export type CartProductRef = {
-  id: string
-  slug: string
-  name: string
-  brand: string | null
-  price: number // centavos
-  image: string | null
-  stock: number
-}
+export type { CartProductRef }
 
 export type CartItem = {
   product: CartProductRef
@@ -26,75 +33,176 @@ type CartContextType = {
   clearCart: () => void
   totalItems: number
   totalPrice: number // centavos
+  /** Productos cuya cantidad supera el stock actual (advertencia). */
+  stockWarnings: Set<string>
+  ready: boolean
+  error: string | null
+  // Drawer
+  isDrawerOpen: boolean
+  openDrawer: () => void
+  closeDrawer: () => void
 }
 
 const CartContext = createContext<CartContextType | null>(null)
-const STORAGE_KEY = 'cart'
 
-function isValidItem(x: unknown): x is CartItem {
-  if (!x || typeof x !== 'object') return false
-  const item = x as { product?: unknown; quantity?: unknown }
-  const p = item.product as { id?: unknown; price?: unknown } | undefined
-  return Boolean(p) && typeof p?.id === 'string' && typeof p?.price === 'number' && typeof item.quantity === 'number'
+/** Capa la cantidad al stock disponible, con un mínimo de 1 unidad. */
+function cap(quantity: number, stock: number): number {
+  return Math.min(quantity, Math.max(stock, 1))
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { status } = useSession()
+  const authed = status === 'authenticated'
+
   const [items, setItems] = useState<CartItem[]>([])
-  const [hydrated, setHydrated] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isDrawerOpen, setDrawerOpen] = useState(false)
+  const prevStatus = useRef(status)
 
+  // Persistir el carrito anónimo (localStorage + cookie) en cada cambio.
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed)) setItems(parsed.filter(isValidItem))
-      } catch {
-        // ignore corrupted storage
+    if (ready && status === 'unauthenticated') writeAnonCart(items as AnonCartItem[])
+  }, [items, ready, status])
+
+  // Sincronización según el estado de sesión:
+  // - anónimo: hidratar desde localStorage
+  // - logueado: cargar de DB, mergeando el carrito anónimo si recién se logueó
+  useEffect(() => {
+    if (status === 'loading') return
+    let cancelled = false
+
+    const justLoggedIn = status === 'authenticated' && prevStatus.current !== 'authenticated'
+    prevStatus.current = status
+
+    async function sync() {
+      if (status === 'unauthenticated') {
+        if (!cancelled) {
+          setItems(readAnonCart())
+          setReady(true)
+        }
+        return
       }
-    }
-    setHydrated(true)
-  }, [])
 
-  useEffect(() => {
-    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
-  }, [items, hydrated])
+      const result = justLoggedIn ? await mergeAnonymousCartAction() : await getCartAction()
+      if (cancelled) return
+      if (result.success) {
+        if (justLoggedIn) clearAnonCart()
+        setItems(result.cart.items.map(({ product, quantity }) => ({ product, quantity })))
+      } else {
+        setError(result.error)
+      }
+      setReady(true)
+    }
+    void sync()
+    return () => {
+      cancelled = true
+    }
+  }, [status])
+
+  async function reloadFromServer() {
+    const result = await getCartAction()
+    if (result.success) {
+      setItems(result.cart.items.map(({ product, quantity }) => ({ product, quantity })))
+    }
+  }
 
   function addItem(product: CartProductRef, quantity = 1) {
+    setError(null)
     setItems((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id)
+      const existing = prev.find((it) => it.product.id === product.id)
       if (existing) {
-        const next = Math.min(existing.quantity + quantity, Math.max(product.stock, 1))
-        return prev.map((item) => (item.product.id === product.id ? { ...item, product, quantity: next } : item))
+        return prev.map((it) =>
+          it.product.id === product.id
+            ? { ...it, product, quantity: cap(it.quantity + quantity, product.stock) }
+            : it,
+        )
       }
-      return [...prev, { product, quantity: Math.min(quantity, Math.max(product.stock, 1)) }]
+      return [...prev, { product, quantity: cap(quantity, product.stock) }]
     })
+    setDrawerOpen(true)
+    if (authed) {
+      void addToCartAction(product.id, quantity).then((r) => {
+        if (!r.success) {
+          setError(r.error)
+          void reloadFromServer()
+        }
+      })
+    }
   }
 
   function removeItem(productId: string) {
-    setItems((prev) => prev.filter((item) => item.product.id !== productId))
+    setError(null)
+    setItems((prev) => prev.filter((it) => it.product.id !== productId))
+    if (authed) {
+      void removeCartItemAction(productId).then((r) => {
+        if (!r.success) {
+          setError(r.error)
+          void reloadFromServer()
+        }
+      })
+    }
   }
 
   function updateQuantity(productId: string, quantity: number) {
     if (quantity < 1) return
+    setError(null)
     setItems((prev) =>
-      prev.map((item) =>
-        item.product.id === productId
-          ? { ...item, quantity: Math.min(quantity, Math.max(item.product.stock, 1)) }
-          : item,
+      prev.map((it) =>
+        it.product.id === productId
+          ? { ...it, quantity: cap(quantity, it.product.stock) }
+          : it,
       ),
     )
+    if (authed) {
+      void setCartItemAction(productId, quantity).then((r) => {
+        if (!r.success) {
+          setError(r.error)
+          void reloadFromServer()
+        }
+      })
+    }
   }
 
   function clearCart() {
+    setError(null)
     setItems([])
+    if (authed) {
+      void clearCartAction().then((r) => {
+        if (!r.success) {
+          setError(r.error)
+          void reloadFromServer()
+        }
+      })
+    }
   }
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
-  const totalPrice = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+  const totalItems = items.reduce((sum, it) => sum + it.quantity, 0)
+  const totalPrice = items.reduce(
+    (sum, it) => sum + it.product.price * Math.min(it.quantity, Math.max(it.product.stock, 0)),
+    0,
+  )
+  const stockWarnings = new Set(
+    items.filter((it) => it.quantity > it.product.stock).map((it) => it.product.id),
+  )
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice }}
+      value={{
+        items,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        totalItems,
+        totalPrice,
+        stockWarnings,
+        ready,
+        error,
+        isDrawerOpen,
+        openDrawer: () => setDrawerOpen(true),
+        closeDrawer: () => setDrawerOpen(false),
+      }}
     >
       {children}
     </CartContext.Provider>

@@ -1,6 +1,6 @@
-import { and, eq, getTableColumns, sql } from 'drizzle-orm'
+import { and, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm'
 import { db, type DbOrTx } from '@/lib/db'
-import { carts, cartItems, products } from '@/lib/db/schemas'
+import { carts, cartItems, productImages, products } from '@/lib/db/schemas'
 import type { Product } from '@/lib/db/types'
 import { AuthorizationError, NotFoundError, ValidationError } from '@/lib/errors'
 
@@ -76,6 +76,75 @@ export async function getCart(userId: string): Promise<CartView> {
   }
 }
 
+/** Referencia serializable de un producto para el carrito en el cliente. */
+export type CartProductRef = {
+  id: string
+  slug: string
+  name: string
+  brand: string | null
+  price: number // centavos
+  image: string | null
+  stock: number
+}
+
+export type CartClientLine = {
+  product: CartProductRef
+  quantity: number
+  /** Verdadero si la cantidad guardada supera el stock actual del producto. */
+  stockExceeded: boolean
+}
+
+export type CartClientView = {
+  items: CartClientLine[]
+  subtotal: number // centavos, capado al stock disponible
+  count: number
+}
+
+/** Imagen principal de cada producto, en un solo query. */
+async function primaryImages(ids: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  if (ids.length === 0) return map
+  const imgs = await db
+    .select({ productId: productImages.productId, url: productImages.url })
+    .from(productImages)
+    .where(inArray(productImages.productId, ids))
+    .orderBy(desc(productImages.isPrimary), productImages.order)
+  for (const img of imgs) if (!map.has(img.productId)) map.set(img.productId, img.url)
+  return map
+}
+
+/**
+ * Carrito del usuario en la forma que consume el cliente: referencia de
+ * producto + imagen principal + flag de stock insuficiente para advertir.
+ */
+export async function getCartForClient(userId: string): Promise<CartClientView> {
+  const { items } = await getCart(userId)
+  const images = await primaryImages(items.map((it) => it.product.id))
+
+  const lines: CartClientLine[] = items.map((it) => {
+    const p = it.product
+    return {
+      product: {
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        brand: p.brand,
+        price: p.price,
+        image: images.get(p.id) ?? null,
+        stock: p.stock,
+      },
+      quantity: it.quantity,
+      stockExceeded: it.quantity > p.stock,
+    }
+  })
+
+  return {
+    items: lines,
+    subtotal: lines.reduce((acc, l) => acc + l.product.price * Math.min(l.quantity, l.product.stock), 0),
+    count: lines.reduce((acc, l) => acc + l.quantity, 0),
+  }
+}
+
 async function currentQty(cartId: string, productId: string): Promise<number> {
   const [row] = await db
     .select({ quantity: cartItems.quantity })
@@ -146,6 +215,49 @@ export async function removeCartItem(userId: string, itemId: string): Promise<vo
 export async function clearCart(userId: string): Promise<void> {
   const cartId = await getOrCreateCart(userId)
   await db.delete(cartItems).where(eq(cartItems.cartId, cartId))
+}
+
+/**
+ * Fija la cantidad de un producto en el carrito del usuario, identificándolo
+ * por `productId`. Opera siempre sobre el carrito del propio usuario, así que
+ * es imposible tocar el de otro. Si la cantidad es 0 elimina la línea.
+ */
+export async function setCartProductQuantity(
+  userId: string,
+  productId: string,
+  quantity: number,
+): Promise<void> {
+  if (!Number.isInteger(quantity) || quantity < 0) {
+    throw new ValidationError([{ field: 'quantity', message: 'Cantidad inválida' }])
+  }
+  const cartId = await getOrCreateCart(userId)
+  if (quantity === 0) {
+    await db
+      .delete(cartItems)
+      .where(and(eq(cartItems.cartId, cartId), eq(cartItems.productId, productId)))
+    return
+  }
+  const product = await requireProduct(productId)
+  if (quantity > product.stock) {
+    throw new ValidationError([
+      { field: 'quantity', message: `Solo quedan ${product.stock} unidades disponibles` },
+    ])
+  }
+  await db
+    .insert(cartItems)
+    .values({ cartId, productId, quantity })
+    .onConflictDoUpdate({
+      target: [cartItems.cartId, cartItems.productId],
+      set: { quantity },
+    })
+}
+
+/** Elimina un producto del carrito del usuario por `productId`. */
+export async function removeCartProduct(userId: string, productId: string): Promise<void> {
+  const cartId = await getOrCreateCart(userId)
+  await db
+    .delete(cartItems)
+    .where(and(eq(cartItems.cartId, cartId), eq(cartItems.productId, productId)))
 }
 
 export type AnonymousCartItem = { productId: string; quantity: number }
