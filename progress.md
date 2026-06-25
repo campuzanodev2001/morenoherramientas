@@ -18,9 +18,10 @@
 | Base de datos (schemas + queries) | ✅ Completo |
 | Autenticación + uploads | ✅ Completo |
 | Panel admin sobre DB (auth, productos, dashboard, categorías, banners, hero/secciones) | ✅ Completo |
-| Búsqueda fuzzy pg_trgm (API) | ✅ Completo |
-| Catálogo público UI sobre DB (home/categoría/producto/buscar) | ⏳ Pendiente |
-| Carrito / checkout / envíos | ⏳ Pendiente |
+| Búsqueda fuzzy pg_trgm (API + página) | ✅ Completo |
+| Catálogo público UI sobre DB (home/categoría/producto/buscar) | ✅ Completo |
+| Carrito (reshape a DB shape, localStorage) | 🟡 Parcial (falta carrito DB + merge en CART-01) |
+| Checkout / envíos | ⏳ Pendiente |
 | MercadoPago + webhook | ⏳ Pendiente |
 | Mails transaccionales | ⏳ Pendiente |
 | Panel de órdenes | ⏳ Pendiente |
