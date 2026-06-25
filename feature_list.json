@@ -387,7 +387,7 @@
     {
       "id": "ADMIN-03",
       "name": "Panel admin: hero y secciones destacadas (prototipo)",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Configuración de hero (imagen, título, CTA) y de la sección de destacados desde el admin, hoy en localStorage.",
       "acceptance_criteria": [
         "PROTOTIPO: editar hero y elegir productos destacados con persistencia en localStorage. [hecho]",
