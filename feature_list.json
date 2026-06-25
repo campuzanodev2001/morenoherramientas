@@ -177,7 +177,7 @@
     {
       "id": "CAT-02",
       "name": "Página home (hero + destacados)",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Home con hero configurable y productos destacados. Hoy se nutre de datos estáticos y de la config del AdminContext (localStorage).",
       "acceptance_criteria": [
         "PROTOTIPO: muestra hero y grilla de destacados configurables desde el admin. [hecho]",
@@ -189,7 +189,7 @@
     {
       "id": "CAT-03",
       "name": "Página de categoría con filtros",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Listado de productos por categoría con navegación de subcategorías.",
       "acceptance_criteria": [
         "PROTOTIPO: lista productos de una categoría desde datos estáticos. [parcial]",
@@ -201,7 +201,7 @@
     {
       "id": "CAT-04",
       "name": "Ficha de producto",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Página de detalle con galería de imágenes, especificaciones técnicas, agregar al carrito y calculadora de envío. Hoy con datos estáticos y URL por id numérico.",
       "acceptance_criteria": [
         "PROTOTIPO: galería, specs en tabla, botón agregar al carrito y bloque de envío. [hecho]",
@@ -215,7 +215,7 @@
     {
       "id": "CAT-05",
       "name": "Skeletons y estados de carga del catálogo",
-      "status": "TODO",
+      "status": "DONE",
       "description": "Componentes Skeleton y loading.tsx/error.tsx en cada segmento de ruta del catálogo.",
       "acceptance_criteria": [
         "Existen ProductCardSkeleton, ProductGridSkeleton, ProductRowSkeleton, CategoryGridSkeleton y SearchBarSkeleton.",

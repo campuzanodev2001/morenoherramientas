@@ -1,40 +1,38 @@
 import Link from 'next/link'
 import HamburgerMenu from '@/app/components/HamburgerMenu'
 import SearchBar from '@/app/components/SearchBar'
-import { getAllProducts } from '@/lib/products'
-import SearchResults from './SearchResults'
+import CartHeader from '@/app/components/CartHeader'
+import ProductCard from '@/app/components/ProductCard'
+import { searchProducts } from '@/lib/db/queries/search'
+import { getCardsByIds } from '@/lib/db/queries/catalog'
+import { safe } from '@/lib/db/safe'
 
-interface BuscarPageProps {
-  searchParams: Promise<{ q?: string }>
-}
+export const dynamic = 'force-dynamic'
 
-export default async function BuscarPage({ searchParams }: BuscarPageProps) {
+export default async function BuscarPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams
   const query = q?.trim() ?? ''
-  const allProducts = getAllProducts()
+
+  const result = query
+    ? await safe(() => searchProducts({ q: query, limit: 48 }), { products: [], total: 0, nextOffset: null })
+    : { products: [], total: 0, nextOffset: null }
+  const cards = await safe(() => getCardsByIds(result.products.map((p) => p.id)), [])
 
   return (
     <>
       <header className="bg-surface-container-lowest fixed top-0 left-0 right-0 z-50 border-b-2 border-primary-container">
         <div className="max-w-[1280px] mx-auto flex justify-between items-center px-4 md:px-16 h-16">
           <HamburgerMenu />
-          <Link
-            href="/"
-            className="text-lg md:text-xl font-extrabold text-primary-container uppercase tracking-tighter"
-          >
+          <Link href="/" className="text-lg md:text-xl font-extrabold text-primary-container uppercase tracking-tighter">
             Moreno Herramientas
           </Link>
-          <button className="text-primary-container p-2 rounded-none">
-            <span className="material-symbols-outlined">shopping_cart</span>
-          </button>
+          <CartHeader />
         </div>
       </header>
 
-      <main className=" mt-3 pt-16 flex flex-col gap-6 max-w-[1280px] mx-auto w-full px-4 md:px-16 py-8">
+      <main className="mt-3 pt-16 flex flex-col gap-6 max-w-[1280px] mx-auto w-full px-4 md:px-16 py-8 min-h-[calc(100dvh-4rem)]">
         <nav className="flex items-center gap-1.5 flex-wrap text-xs font-medium text-on-surface-variant">
-          <Link href="/" className="hover:text-accent-red transition-colors uppercase tracking-wide">
-            Inicio
-          </Link>
+          <Link href="/" className="hover:text-accent-red transition-colors uppercase tracking-wide">Inicio</Link>
           <span className="text-outline">/</span>
           <span className="text-on-surface font-bold uppercase tracking-wide">
             {query ? `Resultados para "${query}"` : 'Búsqueda'}
@@ -45,45 +43,24 @@ export default async function BuscarPage({ searchParams }: BuscarPageProps) {
           <SearchBar />
         </div>
 
-        <SearchResults query={query} products={allProducts} />
-      </main>
+        {query && (
+          <p className="text-sm text-on-surface-variant font-medium">
+            {result.total} {result.total === 1 ? 'resultado' : 'resultados'}
+          </p>
+        )}
 
-      <footer className="bg-primary-container w-full mt-8 md:mt-12 border-t-4 border-accent-red">
-        <div className="max-w-[1280px] mx-auto flex flex-col p-4 md:p-16 gap-6">
-          <h2 className="text-2xl font-black text-on-primary uppercase tracking-tighter">
-            Moreno Herramientas
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <nav className="flex flex-col gap-3">
-              <Link href="#" className="text-sm font-medium text-white/80 hover:text-white uppercase transition-colors duration-200">
-                Herramientas
-              </Link>
-              <Link href="#" className="text-sm font-medium text-white/80 hover:text-white uppercase transition-colors duration-200">
-                Marcas
-              </Link>
-              <Link href="#" className="text-sm font-medium text-white/80 hover:text-white uppercase transition-colors duration-200">
-                Ofertas
-              </Link>
-            </nav>
-            <nav className="flex flex-col gap-3">
-              <Link href="#" className="text-sm font-medium text-white/80 hover:text-white uppercase transition-colors duration-200">
-                Mi Cuenta
-              </Link>
-              <Link href="#" className="text-sm font-medium text-white/80 hover:text-white uppercase transition-colors duration-200">
-                Contacto
-              </Link>
-              <Link href="#" className="text-sm font-medium text-white/80 hover:text-white uppercase transition-colors duration-200">
-                Sucursales
-              </Link>
-            </nav>
+        {cards.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {cards.map((card) => (
+              <ProductCard key={card.id} card={card} />
+            ))}
           </div>
-          <div className="pt-4 border-t border-white/10">
-            <p className="text-xs text-white/60">
-              © 2024 Moreno Herramientas. Calidad y Precisión Industrial.
-            </p>
+        ) : (
+          <div className="py-16 text-center text-on-surface-variant font-medium">
+            {query ? 'No encontramos productos para tu búsqueda.' : 'Escribí algo para buscar productos.'}
           </div>
-        </div>
-      </footer>
+        )}
+      </main>
     </>
   )
 }

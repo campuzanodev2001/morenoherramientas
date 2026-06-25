@@ -2,13 +2,10 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCart, parsePrice } from '@/app/context/CartContext'
+import { useCart } from '@/app/context/CartContext'
 import HamburgerMenu from '@/app/components/HamburgerMenu'
 import CartHeader from '@/app/components/CartHeader'
-
-function formatPrice(amount: number): string {
-  return '$' + amount.toLocaleString('es-AR')
-}
+import { formatPrice } from '@/lib/catalog/format'
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, clearCart, totalPrice } = useCart()
@@ -77,7 +74,7 @@ export default function CartPage() {
                 >
                   <div className="relative w-20 h-20 flex-shrink-0 bg-white border border-outline overflow-hidden">
                     <Image
-                      src={product.images[0]}
+                      src={product.image ?? '/file.svg'}
                       alt={product.name}
                       fill
                       sizes="80px"
@@ -93,7 +90,7 @@ export default function CartPage() {
                       {product.name}
                     </span>
                     <span className="text-accent-red text-lg font-black leading-none mt-1">
-                      {formatPrice(parsePrice(product.price) * quantity)}
+                      {formatPrice(product.price * quantity)}
                     </span>
                   </div>
 
@@ -143,7 +140,7 @@ export default function CartPage() {
                       {product.name}
                     </span>
                     <span className="font-black text-on-surface flex-shrink-0">
-                      {formatPrice(parsePrice(product.price) * quantity)}
+                      {formatPrice(product.price * quantity)}
                     </span>
                   </div>
                 ))}

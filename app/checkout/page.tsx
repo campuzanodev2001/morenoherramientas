@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useCart, parsePrice } from '@/app/context/CartContext'
+import { useCart } from '@/app/context/CartContext'
 import HamburgerMenu from '@/app/components/HamburgerMenu'
 import CartHeader from '@/app/components/CartHeader'
 
@@ -17,12 +17,12 @@ const paymentOptions: { id: PaymentMethod; label: string; detail: string; surcha
 
 const shippingOptions: { id: ShippingMethod; label: string; detail: string; cost: number }[] = [
   { id: 'retiro', label: 'Retiro en tienda', detail: 'Lunes a sábado 9:00–18:00', cost: 0 },
-  { id: 'andreani', label: 'Andreani', detail: '3–5 días hábiles', cost: 3500 },
-  { id: 'estandar', label: 'Envío estándar', detail: '5–7 días hábiles', cost: 2500 },
+  { id: 'andreani', label: 'Andreani', detail: '3–5 días hábiles', cost: 350000 },
+  { id: 'estandar', label: 'Envío estándar', detail: '5–7 días hábiles', cost: 250000 },
 ]
 
-function formatPrice(amount: number): string {
-  return '$' + amount.toLocaleString('es-AR')
+function formatPrice(cents: number): string {
+  return '$' + Math.round(cents / 100).toLocaleString('es-AR')
 }
 
 export default function CheckoutPage() {
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
                     {product.name}
                   </span>
                   <span className="font-black text-on-surface flex-shrink-0">
-                    {formatPrice(parsePrice(product.price) * quantity)}
+                    {formatPrice(product.price * quantity)}
                   </span>
                 </div>
               ))}
