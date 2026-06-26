@@ -510,7 +510,7 @@
     {
       "id": "QUALITY-01",
       "name": "Calidad transversal: TypeScript estricto y UX de estados",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "description": "Reglas globales de CLAUDE.md aplicadas a todo el código: TS estricto sin any, Server Components por defecto, y feedback de estado al usuario.",
       "acceptance_criteria": [
         "tsconfig con strict, noUncheckedIndexedAccess, noImplicitReturns y exactOptionalPropertyTypes; compila sin errores.",

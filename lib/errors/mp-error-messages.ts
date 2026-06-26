@@ -6,6 +6,8 @@
  * el detalle de la orden. Cualquier código no contemplado cae en `default`.
  */
 
+const DEFAULT_MP_MESSAGE = 'No pudimos procesar el pago. Intentá de nuevo.'
+
 const MP_ERROR_MESSAGES: Record<string, string> = {
   cc_rejected_insufficient_amount: 'Fondos insuficientes en la tarjeta',
   cc_rejected_bad_filled_card_number: 'Número de tarjeta incorrecto',
@@ -26,8 +28,8 @@ const MP_ERROR_MESSAGES: Record<string, string> = {
 }
 
 export function getMpErrorMessage(code: string | null | undefined): string {
-  if (!code) return MP_ERROR_MESSAGES.default
-  return MP_ERROR_MESSAGES[code] ?? MP_ERROR_MESSAGES.default
+  if (!code) return DEFAULT_MP_MESSAGE
+  return MP_ERROR_MESSAGES[code] ?? DEFAULT_MP_MESSAGE
 }
 
 export { MP_ERROR_MESSAGES }

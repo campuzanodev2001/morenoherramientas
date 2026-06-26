@@ -396,7 +396,7 @@ function Field({
   children,
 }: {
   label: string
-  error?: string
+  error?: string | undefined
   className?: string
   children: React.ReactNode
 }) {

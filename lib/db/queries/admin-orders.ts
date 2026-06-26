@@ -14,12 +14,12 @@ export type AdminOrderRow = {
 }
 
 export type AdminOrderFilters = {
-  status?: OrderStatus
-  search?: string
-  dateFrom?: string // ISO yyyy-mm-dd
-  dateTo?: string
-  page?: number
-  limit?: number
+  status?: OrderStatus | undefined
+  search?: string | undefined
+  dateFrom?: string | undefined // ISO yyyy-mm-dd
+  dateTo?: string | undefined
+  page?: number | undefined
+  limit?: number | undefined
 }
 
 export type AdminOrderPage = {
@@ -55,11 +55,12 @@ export async function listOrdersAdmin(filters: AdminOrderFilters = {}): Promise<
   const offset = (page - 1) * limit
   const conds = buildConds(filters)
 
-  const [{ total }] = await db
+  const [totalRow] = await db
     .select({ total: count() })
     .from(orders)
     .leftJoin(users, eq(orders.userId, users.id))
     .where(conds.length ? and(...conds) : undefined)
+  const total = totalRow?.total ?? 0
 
   const rows = await db
     .select({

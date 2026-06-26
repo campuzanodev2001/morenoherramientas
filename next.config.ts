@@ -20,9 +20,9 @@ const withAxiomConfig = withAxiom(nextConfig);
 // Sentry envuelve la config para subir source maps e instrumentar.
 // Sin SENTRY_AUTH_TOKEN (dev) simplemente no sube source maps.
 export default withSentryConfig(withAxiomConfig, {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
+  ...(process.env.SENTRY_ORG ? { org: process.env.SENTRY_ORG } : {}),
+  ...(process.env.SENTRY_PROJECT ? { project: process.env.SENTRY_PROJECT } : {}),
+  ...(process.env.SENTRY_AUTH_TOKEN ? { authToken: process.env.SENTRY_AUTH_TOKEN } : {}),
   silent: !process.env.CI,
   disableLogger: true,
 });

@@ -6,8 +6,8 @@ import { pk, createdAt, updatedAt } from './_helpers'
 export type ShippingAddress = {
   street: string
   number: string
-  floor?: string
-  apartment?: string
+  floor?: string | undefined
+  apartment?: string | undefined
   city: string
   province: string
   postalCode: string

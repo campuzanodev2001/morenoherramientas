@@ -16,11 +16,11 @@ export type AdminProductRow = {
 }
 
 export type AdminProductFilters = {
-  search?: string
-  categoryId?: string
-  active?: boolean
-  page?: number
-  limit?: number
+  search?: string | undefined
+  categoryId?: string | undefined
+  active?: boolean | undefined
+  page?: number | undefined
+  limit?: number | undefined
 }
 
 export type AdminProductPage = {
@@ -49,10 +49,11 @@ export async function listProductsAdmin(filters: AdminProductFilters = {}): Prom
   const offset = (page - 1) * limit
   const conds = buildConds(filters)
 
-  const [{ total }] = await db
+  const [totalRow] = await db
     .select({ total: count() })
     .from(products)
     .where(and(...conds))
+  const total = totalRow?.total ?? 0
 
   const rows = await db
     .select({

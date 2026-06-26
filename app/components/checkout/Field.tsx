@@ -5,14 +5,14 @@ type Props = {
   name: string
   value: string
   onChange: (value: string) => void
-  onBlur?: () => void
-  error?: string | null
-  type?: string
-  placeholder?: string
-  inputMode?: 'text' | 'numeric' | 'tel' | 'email'
-  maxLength?: number
-  required?: boolean
-  className?: string
+  onBlur?: (() => void) | undefined
+  error?: string | null | undefined
+  type?: string | undefined
+  placeholder?: string | undefined
+  inputMode?: 'text' | 'numeric' | 'tel' | 'email' | undefined
+  maxLength?: number | undefined
+  required?: boolean | undefined
+  className?: string | undefined
 }
 
 export default function Field({

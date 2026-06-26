@@ -5,11 +5,11 @@ import type { Product } from '@/lib/db/types'
 
 export type SearchParams = {
   q: string
-  categorySlug?: string
-  priceMin?: number // pesos
-  priceMax?: number // pesos
-  offset?: number
-  limit?: number
+  categorySlug?: string | undefined
+  priceMin?: number | undefined // pesos
+  priceMax?: number | undefined // pesos
+  offset?: number | undefined
+  limit?: number | undefined
 }
 
 export type SearchResult = {

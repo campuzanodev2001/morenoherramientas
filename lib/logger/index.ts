@@ -14,7 +14,7 @@ type LogContext = Record<string, unknown>
 
 function serializeError(error: unknown): { message: string; stack?: string } {
   if (error instanceof Error) {
-    return { message: error.message, stack: error.stack }
+    return error.stack ? { message: error.message, stack: error.stack } : { message: error.message }
   }
   return { message: typeof error === 'string' ? error : 'Unknown error' }
 }
@@ -40,6 +40,6 @@ export function reportException(error: unknown, context?: LogContext): void {
   const { message, stack } = serializeError(error)
   console.error('[capture]', { message, stack, ...context })
   void import('@sentry/nextjs')
-    .then((Sentry) => Sentry.captureException(error, { extra: context }))
+    .then((Sentry) => Sentry.captureException(error, context ? { extra: context } : undefined))
     .catch(() => {})
 }

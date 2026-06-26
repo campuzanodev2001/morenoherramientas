@@ -9,7 +9,8 @@ export default function CategoriasPage() {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [expandedSubcategories, setExpandedSubcategories] = useState<Set<string>>(new Set())
 
-  const activeGroup = initialMenuData[activeGroupIdx]
+  // initialMenuData nunca está vacío; el índice se mantiene en rango.
+  const activeGroup = initialMenuData[activeGroupIdx] ?? initialMenuData[0]!
   const totalCategories = initialMenuData.reduce((sum, g) => sum + g.categories.length, 0)
 
   function toggleCategory(gi: number, ci: number) {

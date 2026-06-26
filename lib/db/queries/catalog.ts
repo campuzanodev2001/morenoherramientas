@@ -82,11 +82,12 @@ export async function getCategoryCards(
   const offset = (Math.max(page, 1) - 1) * limit
   const conds = [...visible(), eq(categories.slug, categorySlug)]
 
-  const [{ total }] = await db
+  const [totalRow] = await db
     .select({ total: count() })
     .from(products)
     .innerJoin(categories, eq(products.categoryId, categories.id))
     .where(and(...conds))
+  const total = totalRow?.total ?? 0
 
   const rows = await db
     .select({ product: products })
@@ -98,7 +99,7 @@ export async function getCategoryCards(
     .offset(offset)
 
   const cards = await toCards(rows.map((r) => r.product))
-  return { cards, total: total ?? 0, totalPages: Math.max(1, Math.ceil((total ?? 0) / limit)) }
+  return { cards, total, totalPages: Math.max(1, Math.ceil(total / limit)) }
 }
 
 export async function getRelatedCards(

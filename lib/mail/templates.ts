@@ -69,7 +69,7 @@ function itemsTable(items: { productName: string; quantity: number; subtotal: nu
 type Address = {
   street: string
   number: string
-  floor?: string
+  floor?: string | undefined
   city: string
   province: string
   postalCode: string

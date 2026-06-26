@@ -49,11 +49,11 @@ export type CreateOrderData = {
 
 async function nextOrderNumber(executor: DbOrTx): Promise<string> {
   const year = new Date().getFullYear()
-  const [{ count }] = await executor
+  const [row] = await executor
     .select({ count: sql<number>`count(*)::int` })
     .from(orders)
     .where(sql`extract(year from ${orders.createdAt}) = ${year}`)
-  const seq = String((count ?? 0) + 1).padStart(4, '0')
+  const seq = String((row?.count ?? 0) + 1).padStart(4, '0')
   return `FE-${year}-${seq}`
 }
 
