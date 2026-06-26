@@ -10,6 +10,7 @@ import { loginSchema } from '@/lib/validations/auth'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import { env } from '@/lib/env'
 import { logWarn } from '@/lib/logger'
+import { onUserWelcome } from '@/lib/mail/hooks'
 import type { Role } from '@/lib/db/types'
 
 // Hash dummy para mantener tiempo de respuesta constante cuando el usuario no
@@ -93,9 +94,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   events: {
-    createUser: async ({ user }) => {
-      // MAIL-01: enviar WelcomeEmail al primer registro (isNewUser).
-      logWarn('auth', 'Nuevo usuario creado (welcome email pendiente)', { userId: user.id })
+    createUser: ({ user }) => {
+      // WelcomeEmail al primer registro (fire-and-forget, no bloquea el signIn).
+      if (user.id) onUserWelcome(user.id)
     },
   },
 })

@@ -1,28 +1,42 @@
-import { logInfo } from '@/lib/logger'
+import { logError } from '@/lib/logger'
+import {
+  sendOrderConfirmation,
+  sendOrderShipped,
+  sendOrderDelivered,
+  sendPaymentFailed,
+  sendWelcomeEmail,
+} from './dispatch'
 
 /**
- * Puntos de enganche de mails, en formato fire-and-forget: NUNCA se les hace
- * `await` desde el flujo principal (webhook, server actions). Un fallo de mail
- * no debe romper el flujo. MAIL-01 conecta estas funciones con los dispatch
- * reales de Resend; hasta entonces solo loggean.
+ * Puntos de enganche de mails en formato fire-and-forget: NUNCA se les hace
+ * `await` desde el flujo principal (webhook, server actions, signIn). Un fallo
+ * de mail no debe romper el flujo. Cada dispatch ya captura sus errores; este
+ * `.catch` es una red de seguridad extra.
  */
+function fireAndForget(promise: Promise<void>, scope: string): void {
+  void promise.catch((error: unknown) => {
+    logError('mail:hook', `${scope} falló`, {
+      error: error instanceof Error ? error.message : 'unknown',
+    })
+  })
+}
 
 export function onPaymentApproved(orderId: string): void {
-  logInfo('mail:hook', 'OrderConfirmation pendiente de envío (MAIL-01)', { orderId })
+  fireAndForget(sendOrderConfirmation(orderId), 'onPaymentApproved')
 }
 
 export function onPaymentRejected(orderId: string): void {
-  logInfo('mail:hook', 'PaymentFailed pendiente de envío (MAIL-01)', { orderId })
+  fireAndForget(sendPaymentFailed(orderId), 'onPaymentRejected')
 }
 
 export function onOrderShipped(orderId: string, trackingNumber: string): void {
-  logInfo('mail:hook', 'OrderShipped pendiente de envío (MAIL-01)', { orderId, trackingNumber })
+  fireAndForget(sendOrderShipped(orderId, trackingNumber), 'onOrderShipped')
 }
 
 export function onOrderDelivered(orderId: string): void {
-  logInfo('mail:hook', 'OrderDelivered pendiente de envío (MAIL-01)', { orderId })
+  fireAndForget(sendOrderDelivered(orderId), 'onOrderDelivered')
 }
 
 export function onUserWelcome(userId: string): void {
-  logInfo('mail:hook', 'WelcomeEmail pendiente de envío (MAIL-01)', { userId })
+  fireAndForget(sendWelcomeEmail(userId), 'onUserWelcome')
 }

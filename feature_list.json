@@ -347,7 +347,7 @@
     {
       "id": "MAIL-01",
       "name": "Sistema de mails con idempotencia (Resend + React Email)",
-      "status": "TODO",
+      "status": "DONE",
       "description": "lib/mail con sendMail idempotente (mail_logs), 5 templates y funciones de dispatch.",
       "acceptance_criteria": [
         "sendMail verifica mail_logs por idempotencyKey = orderId + ':' + templateName; si ya existe no reenvía.",
