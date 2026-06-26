@@ -21,13 +21,15 @@
 | Búsqueda fuzzy pg_trgm (API + página) | ✅ Completo |
 | Catálogo público UI sobre DB (home/categoría/producto/buscar) | ✅ Completo |
 | Carrito (DB para logueados + localStorage/cookie anónimo, merge al loguearse, CartDrawer) | ✅ Completo (CART-01) |
-| Checkout / envíos | ⏳ Pendiente |
-| MercadoPago + webhook | ⏳ Pendiente |
-| Mails transaccionales | ⏳ Pendiente |
-| Panel de órdenes | ⏳ Pendiente |
-| Cuenta del cliente | ⏳ Pendiente |
-| Importación / SEO / deploy | ⏳ Pendiente |
-| Hardening TypeScript estricto | ⏳ Pendiente |
+| Checkout multi-paso + cotización de envíos (Andreani + Correo) | ✅ Completo (CHECKOUT-01, SHIP-01) |
+| MercadoPago: preferencia + Bricks + webhook + orden + cron | ✅ Completo (PAY-01..05) |
+| Mails transaccionales con idempotencia (Resend) | ✅ Completo (MAIL-01) |
+| Panel de órdenes + transiciones de estado | ✅ Completo (ADMIN-06) |
+| Cuenta del cliente (perfil + órdenes) | ✅ Completo (ACCOUNT-01/02) |
+| Importación / SEO / deploy | ✅ Completo (LAUNCH-01..03) |
+| Hardening TypeScript estricto | ✅ Completo (QUALITY-01) |
+
+> **Todas las features de `feature_list.json` están en `DONE`.**
 
 **Completadas: 17 features** (INFRA-02..07, DB-01/02, AUTH-01/02, CLOUD-01, ADMIN-AUTH/01..05, SEARCH-01).
 Todas compilan, pasan `next build` y están commiteadas una por una (`feat: ...`).
