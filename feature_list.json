@@ -421,7 +421,7 @@
     {
       "id": "ADMIN-06",
       "name": "Panel admin: gestión de órdenes y transiciones de estado",
-      "status": "TODO",
+      "status": "DONE",
       "description": "/admin/ordenes con listado, detalle y Server Actions que validan transiciones de estado.",
       "acceptance_criteria": [
         "Listado con filtros por estado y fecha, búsqueda por número/email, paginación server-side y revalidación 60s.",
