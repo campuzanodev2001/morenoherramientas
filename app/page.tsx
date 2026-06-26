@@ -8,8 +8,24 @@ import { getCategories } from '@/lib/db/queries/categories'
 import { getCardsByIds, getFeaturedCards } from '@/lib/db/queries/catalog'
 import { safe } from '@/lib/db/safe'
 import { formatPrice } from '@/lib/catalog/format'
+import { clientEnv } from '@/lib/env'
 
 export const revalidate = 300
+
+const websiteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Moreno Herramientas',
+  url: clientEnv.NEXT_PUBLIC_APP_URL,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${clientEnv.NEXT_PUBLIC_APP_URL}/buscar?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
+}
 
 export default async function Home() {
   const config = await safe(
@@ -24,6 +40,7 @@ export default async function Home() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }} />
       <header className="bg-surface-container-lowest fixed top-0 left-0 right-0 z-50 border-b-2 border-primary-container">
         <div className="max-w-[1280px] mx-auto flex justify-between items-center px-4 md:px-16 h-16">
           <HamburgerMenu />

@@ -472,7 +472,7 @@
     {
       "id": "LAUNCH-01",
       "name": "Importación masiva de productos desde Excel",
-      "status": "TODO",
+      "status": "DONE",
       "description": "scripts/generate-categories.ts y scripts/import-products.ts para cargar los +5.000 productos del Excel existente.",
       "acceptance_criteria": [
         "generate-categories.ts inserta las categorías predefinidas si no existen (ejecutar primero).",
@@ -485,7 +485,7 @@
     {
       "id": "LAUNCH-02",
       "name": "SEO: sitemap, robots y structured data",
-      "status": "TODO",
+      "status": "DONE",
       "description": "Generación dinámica de sitemap, robots con rutas bloqueadas y datos estructurados.",
       "acceptance_criteria": [
         "app/sitemap.ts genera dinámicamente categorías y productos activos, máx 50.000 URLs, con prioridades home 1.0 / categorías 0.8 / productos 0.6.",
@@ -496,7 +496,7 @@
     {
       "id": "LAUNCH-03",
       "name": "Auditoría de seguridad y configuración de deploy",
-      "status": "TODO",
+      "status": "DONE",
       "description": "Checklist completo de seguridad pre-lanzamiento y configuración de Vercel.",
       "acceptance_criteria": [
         "Ningún endpoint devuelve datos de otros usuarios; órdenes siempre filtradas por userId; orden ajena devuelve 404.",
