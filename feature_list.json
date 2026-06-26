@@ -282,7 +282,7 @@
     {
       "id": "PAY-01",
       "name": "Creación de preferencia de MercadoPago (server)",
-      "status": "TODO",
+      "status": "DONE",
       "description": "POST /api/checkout/create-preference con el flujo de 12 pasos: recálculo de precios y stock en servidor antes de crear la orden y la preferencia.",
       "acceptance_criteria": [
         "Orden de seguridad: rate limiting CHECKOUT → validación Zod → recálculo de TODOS los precios desde la DB (nunca del cliente).",
@@ -296,7 +296,7 @@
     {
       "id": "PAY-02",
       "name": "MercadoPago Checkout Bricks (cliente)",
-      "status": "TODO",
+      "status": "DONE",
       "description": "Componente PaymentBricks embebido (no redirige a MP) inicializado con la public key.",
       "acceptance_criteria": [
         "Brick renderizado con preferenceId; skeleton del tamaño del formulario mientras carga.",
@@ -308,7 +308,7 @@
     {
       "id": "PAY-03",
       "name": "Webhook de MercadoPago (crítico)",
-      "status": "TODO",
+      "status": "DONE",
       "description": "POST /api/webhooks/mercadopago: único lugar donde se confirma la orden y se descuenta stock. Flujo exacto e idempotente.",
       "acceptance_criteria": [
         "Valida la firma x-signature ANTES de cualquier operación; firma inválida es la única respuesta no-200 (401).",
@@ -323,7 +323,7 @@
     {
       "id": "PAY-04",
       "name": "Página de resultado de la orden",
-      "status": "TODO",
+      "status": "DONE",
       "description": "app/(store)/orden/[id]/page.tsx: back_url de MP. Lee siempre el estado real de la DB.",
       "acceptance_criteria": [
         "Nunca confía en el query param de estado de MP: lee el estado real de la DB.",
@@ -335,7 +335,7 @@
     {
       "id": "PAY-05",
       "name": "Cron de cancelación de órdenes pendientes",
-      "status": "TODO",
+      "status": "DONE",
       "description": "GET /api/cron/cancelar-ordenes-pendientes protegido por CRON_SECRET, configurado en vercel.json cada 5 minutos.",
       "acceptance_criteria": [
         "Solo acepta requests con header Authorization: Bearer CRON_SECRET; cualquier otro request es rechazado.",

@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, lt, or, sql } from 'drizzle-orm'
 import { db, type DbOrTx } from '@/lib/db'
 import { orders, orderItems } from '@/lib/db/schemas'
 import type {
@@ -138,6 +138,11 @@ export async function updateOrderStatus(
   return updated
 }
 
+/** Asocia el preferenceId de MP a la orden recién creada (sin cambiar estado). */
+export async function setOrderPreferenceId(orderId: string, preferenceId: string): Promise<void> {
+  await db.update(orders).set({ mpPreferenceId: preferenceId }).where(eq(orders.id, orderId))
+}
+
 export type OrderWithItems = Order & { items: OrderItem[] }
 
 /** Orden por id verificando ownership por userId. Null si no es del usuario. */
@@ -159,6 +164,53 @@ export async function getOrderById(
     .where(eq(orderItems.orderId, order.id))
 
   return { ...order, items }
+}
+
+/** Orden con items SIN chequear ownership. Solo para uso interno (webhook). */
+export async function getOrderWithItemsById(orderId: string): Promise<OrderWithItems | null> {
+  const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1)
+  if (!order) return null
+  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id))
+  return { ...order, items }
+}
+
+/**
+ * Orden visible para un viewer: el dueño (userId) o el invitado (guestEmail).
+ * Devuelve null si no coincide, para no revelar si la orden existe.
+ */
+export async function getOrderForViewer(
+  orderId: string,
+  viewer: { userId?: string | null; email?: string | null },
+): Promise<OrderWithItems | null> {
+  const ownership = []
+  if (viewer.userId) ownership.push(eq(orders.userId, viewer.userId))
+  if (viewer.email) ownership.push(eq(orders.guestEmail, viewer.email.toLowerCase()))
+  if (ownership.length === 0) return null
+
+  const match = ownership.length === 1 ? ownership[0] : or(...ownership)
+  const [order] = await db
+    .select()
+    .from(orders)
+    .where(and(eq(orders.id, orderId), match))
+    .limit(1)
+  if (!order) return null
+
+  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id))
+  return { ...order, items }
+}
+
+/**
+ * Cancela las órdenes en 'pending' más viejas que `maxAgeMs`. Devuelve la
+ * cantidad cancelada. Usado por el cron de limpieza.
+ */
+export async function cancelStalePendingOrders(maxAgeMs: number): Promise<number> {
+  const threshold = new Date(Date.now() - maxAgeMs)
+  const cancelled = await db
+    .update(orders)
+    .set({ status: 'cancelled', mpDetail: 'Cancelada automáticamente por falta de pago' })
+    .where(and(eq(orders.status, 'pending'), lt(orders.createdAt, threshold)))
+    .returning({ id: orders.id })
+  return cancelled.length
 }
 
 export type OrderListPage = { orders: Order[]; nextCursor: string | null }
