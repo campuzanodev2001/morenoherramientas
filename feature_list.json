@@ -447,7 +447,7 @@
     {
       "id": "ACCOUNT-01",
       "name": "Cuenta del cliente: perfil y cambio de password",
-      "status": "TODO",
+      "status": "DONE",
       "description": "/cuenta/perfil con edición de datos y cambio de password seguro.",
       "acceptance_criteria": [
         "Edición de nombre; el email no es editable para usuarios de Google OAuth (passwordHash null).",
@@ -460,7 +460,7 @@
     {
       "id": "ACCOUNT-02",
       "name": "Cuenta del cliente: historial y detalle de órdenes",
-      "status": "TODO",
+      "status": "DONE",
       "description": "/cuenta/ordenes y /cuenta/ordenes/[id] con verificación estricta de ownership.",
       "acceptance_criteria": [
         "El historial filtra SIEMPRE por userId === session.user.id, paginado por cursor (10 por página) con badges de estado.",
