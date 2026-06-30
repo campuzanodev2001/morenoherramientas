@@ -6,7 +6,11 @@
 > checkout local sin pago real, sin ninguna dependencia de backend instalada).
 >
 > Seguimiento detallado feature por feature en `feature_list.json`.
-> Última actualización: build completo en verde (`next build` exit 0, `tsc --noEmit` exit 0).
+> Última actualización (30 jun 2026): todas las features en `DONE`; arrancó la **puesta
+> a punto para producción** — credenciales reales cargadas en `.env.local` (Supabase,
+> Cloudinary, Resend, Upstash, Sentry, Axiom), finalización del setup de Sentry y fix de
+> CSP en `middleware.ts` para que carguen los íconos de Google Fonts. Detalle en `info.md`
+> (Etapa 3) y checklist operativo en `todo.md`. `tsc --noEmit` en verde.
 
 ---
 

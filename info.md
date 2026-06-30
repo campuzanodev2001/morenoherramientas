@@ -4,13 +4,16 @@ Reconstrucción del trabajo realizado en **Moreno Herramientas** (tienda online 
 ferretería argentina, +5.000 productos) a partir del historial de commits real.
 Ordenado por fecha en orden ascendente.
 
-El proyecto tuvo dos etapas claramente diferenciadas:
+El proyecto tuvo tres etapas claramente diferenciadas:
 
 1. **Prototipo frontend** (22 may – 3 jun 2026): una tienda 100% de cara, con datos
    estáticos, sin backend.
 2. **Backend de producción** (25 jun – 26 jun 2026): reescritura sistemática feature
    por feature siguiendo el flujo definido en `CLAUDE.md`, migrando todo a base de
    datos real, auth, pagos y deploy.
+3. **Puesta a punto para producción** (30 jun 2026): provisión de servicios reales,
+   carga de credenciales en `.env.local`, finalización del setup de Sentry y arreglo
+   de un bug de íconos (CSP).
 
 ---
 
@@ -300,5 +303,71 @@ proyecto pasó de un prototipo frontend sin backend a una tienda de producción 
 - Cuenta del cliente, importación masiva, observabilidad y deploy en Vercel.
 - TypeScript en modo estricto total, `tsc --noEmit` y `next build` en verde.
 
-> Todo lo descripto en este archivo corresponde a commits y código efectivamente
+> Todo lo descripto hasta acá corresponde a commits y código efectivamente
 > presentes en el repositorio; no incluye trabajo planificado pero no realizado.
+
+---
+
+## Etapa 3 — Puesta a punto para producción (30 jun 2026)
+
+Con todas las features en `DONE`, se empezó a conectar el proyecto a los servicios
+reales y se resolvió el primer bug de integración. Estos cambios son **operativos/config**,
+no features nuevas.
+
+### Credenciales reales cargadas en `.env.local`
+
+Se reemplazaron los placeholders de desarrollo por valores reales de cada servicio
+(el archivo sigue gitignoreado; `.env.example` documenta las claves sin valores):
+
+- **Supabase** → `DATABASE_URL` (transaction pooler, puerto 6543, `?pgbouncer=true`)
+  y `DIRECT_URL` (session pooler, 5432, solo para migraciones de Drizzle Kit).
+- **Cloudinary** → cloud `dlj5r4rze` + `API_KEY`/`API_SECRET` + el público.
+- **Resend** → `RESEND_API_KEY` real. Remitente provisorio `onboarding@resend.dev`
+  (solo envía a la casilla del dueño de la cuenta) hasta verificar el dominio para
+  poder usar `ventas@morenoherramientas.com`.
+- **Upstash Redis** → `UPSTASH_REDIS_URL` + `TOKEN` (REST, para `@upstash/redis`).
+- **Sentry** → `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`,
+  `SENTRY_ORG=campuzano-web-design`, `SENTRY_PROJECT=morenoherramientas`.
+- **Axiom** → `AXIOM_TOKEN`, `AXIOM_DATASET=morenoherramientas`.
+
+> **Siguen como placeholder:** MercadoPago, Google OAuth, Andreani/Correo Argentino,
+> `NEXTAUTH_SECRET` y `CRON_SECRET`.
+
+### Finalización del setup de Sentry (wizard)
+
+Se corrió el wizard oficial de `@sentry/nextjs` y se integró respetando las
+convenciones del proyecto:
+
+- `@sentry/nextjs` actualizado `10.60.0` → `10.62.0`.
+- `instrumentation-client.ts`: se sumaron `enableLogs: true` y `sendDefaultPii: true`,
+  manteniendo el DSN por env var y el `tracesSampleRate` condicional por entorno (no se
+  hardcodeó el DSN como proponía el wizard).
+- `app/global-error.tsx` (nuevo): error boundary global que captura en Sentry los
+  errores del root layout; ajustado a `lang="es"`.
+- `next.config.ts`: **se rechazó** que el wizard lo modificara — el wrap manual de
+  `withSentryConfig(withAxiom(...))` que lee org/project/token desde env vars ya era
+  correcto y mejor (el wizard habría pisado `withAxiom` y hardcodeado valores).
+- Limpieza: se borraron la página y la API de ejemplo del wizard
+  (`app/sentry-example-page`, `app/api/sentry-example-api`) por no seguir las
+  convenciones, y `.env.sentry-build-plugin` por tener el token duplicado (ya está en
+  `.env.local`).
+
+### Fix: los íconos no se veían (CSP bloqueaba Google Fonts)
+
+Síntoma: en vez de los íconos aparecía el **nombre literal** (`arrow_forward`,
+`grid_view`, …). Causa: la app usa la fuente **Material Symbols Outlined** de Google
+Fonts (cargada con `<link>` en `app/layout.tsx`), pero la CSP de `middleware.ts` no
+incluía los dominios de Google, así que el navegador bloqueaba tanto el stylesheet
+como el archivo de fuente y caía a Poppins, mostrando el texto.
+
+Arreglo en `middleware.ts`:
+
+```diff
+- "style-src 'self' 'unsafe-inline'",
++ "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+- "font-src 'self' data:",
++ "font-src 'self' data: https://fonts.gstatic.com",
+```
+
+> Recordatorio: al hacer el hardening de CSP con nonces (LAUNCH-03) hay que mantener
+> estos dos dominios de Google Fonts en la lista.

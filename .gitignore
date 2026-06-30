@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sentry Config File
+.env.sentry-build-plugin
+
+# Sentry — páginas de prueba generadas por el wizard (no van a producción)
+app/sentry-example-page/
+app/api/sentry-example-api/

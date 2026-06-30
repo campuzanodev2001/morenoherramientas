@@ -13,18 +13,22 @@ El resto es verificación.
 ## Fase 1 — Provisionar servicios y juntar credenciales
 
 Crear las cuentas y obtener las claves de cada integración (todas tienen su lugar en
-`lib/env.ts` / `.env.example`):
+`lib/env.ts` / `.env.example`). Las marcadas ✅ ya están cargadas con valores reales en
+`.env.local` (al 30 jun 2026):
 
-- [ ] **Supabase** → `DATABASE_URL` (connection pooler, modo session)
+- [x] **Supabase** → `DATABASE_URL` (pooler 6543) + `DIRECT_URL` (5432) cargados ✅
 - [ ] **MercadoPago** → credenciales **sandbox** primero (`TEST-...`) y luego prod:
-      `MP_ACCESS_TOKEN`, `NEXT_PUBLIC_MP_PUBLIC_KEY`, `MP_WEBHOOK_SECRET`
-- [ ] **Cloudinary** → `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` + el público
-- [ ] **Resend** → `RESEND_API_KEY` y dominio verificado (DNS) para `RESEND_FROM_EMAIL`
-- [ ] **Upstash Redis** → `UPSTASH_REDIS_URL` / `TOKEN`
-- [ ] **Google OAuth** → `GOOGLE_CLIENT_ID` / `SECRET` (con redirect URI de prod)
-- [ ] **Andreani / Correo Argentino** → credenciales reales de carrier
-- [ ] **Sentry / Axiom** → DSN, org, project, token, dataset
-- [ ] Generar `NEXTAUTH_SECRET` y `CRON_SECRET` (≥32 chars aleatorios)
+      `MP_ACCESS_TOKEN`, `NEXT_PUBLIC_MP_PUBLIC_KEY`, `MP_WEBHOOK_SECRET` *(pendiente)*
+- [x] **Cloudinary** → cloud `dlj5r4rze`, `API_KEY` / `API_SECRET` + el público ✅
+- [x] **Resend** → `RESEND_API_KEY` cargada ✅ — **pero** usando remitente de prueba
+      `onboarding@resend.dev`; falta verificar el dominio (DNS) y volver a
+      `ventas@morenoherramientas.com`
+- [x] **Upstash Redis** → `UPSTASH_REDIS_URL` / `TOKEN` (REST) cargados ✅
+- [ ] **Google OAuth** → `GOOGLE_CLIENT_ID` / `SECRET` (con redirect URI de prod) *(pendiente)*
+- [ ] **Andreani / Correo Argentino** → credenciales reales de carrier *(pendiente)*
+- [x] **Sentry / Axiom** → DSN, `org=campuzano-web-design`, `project=morenoherramientas`,
+      auth token, `AXIOM_TOKEN`, `AXIOM_DATASET=morenoherramientas` ✅
+- [ ] Generar `NEXTAUTH_SECRET` y `CRON_SECRET` (≥32 chars aleatorios) *(siguen placeholder)*
 
 ---
 
