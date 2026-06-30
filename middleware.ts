@@ -24,9 +24,9 @@ function securityHeaders(response: NextResponse): NextResponse {
     [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.mercadopago.com https://*.mercadopago.com https://*.mercadolibre.com",
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https://res.cloudinary.com https://*.mercadopago.com https://lh3.googleusercontent.com",
-      "font-src 'self' data:",
+      "font-src 'self' data: https://fonts.gstatic.com",
       "connect-src 'self' https://api.mercadopago.com https://*.mercadopago.com",
       "frame-src 'self' https://*.mercadopago.com https://*.mercadolibre.com",
       "object-src 'none'",
