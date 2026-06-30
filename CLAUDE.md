@@ -30,12 +30,13 @@ una por una. Seguí este flujo sin excepción:
 
 ### Estados válidos en feature-list.json
 
-```json
+```
 "status": "TODO" | "IN_PROGRESS" | "DONE" | "BLOCKED"
 ```
 
 Usar `BLOCKED` si hay una dependencia externa que impide avanzar,
 documentando el motivo en el campo `blockedReason`.
+
 ## El proyecto
 
 Tienda online para ferretería argentina (+5.000 productos).
@@ -108,7 +109,7 @@ Panel admin propio en /admin. Compradores con o sin cuenta registrada.
 
 ## TypeScript — sin excepciones
 
-```json
+```
 { "strict": true, "noUncheckedIndexedAccess": true,
   "noImplicitReturns": true, "exactOptionalPropertyTypes": true }
 ```
@@ -174,6 +175,7 @@ UPPER_SNAKE → constantes y env vars
 
 ```env
 DATABASE_URL=
+DIRECT_URL=          # Supabase session pooler (puerto 5432) — usado solo por Drizzle Kit para migraciones
 NEXTAUTH_SECRET=
 NEXTAUTH_URL=
 GOOGLE_CLIENT_ID=
@@ -204,6 +206,23 @@ SENTRY_PROJECT=
 AXIOM_TOKEN=
 AXIOM_DATASET=
 ```
+
+### Nota sobre DATABASE_URL y DIRECT_URL
+
+Supabase expone dos connection strings distintas para el mismo proyecto:
+
+- **DATABASE_URL** → Transaction pooler, puerto **6543**, con `?pgbouncer=true`.
+  Es la que usa la app en runtime (todas las queries de Drizzle en producción
+  sobre Vercel serverless). Reutiliza un pool de conexiones, evita agotar el
+  límite de conexiones de Supabase con funciones serverless concurrentes.
+
+- **DIRECT_URL** → Session pooler / conexión directa, puerto **5432**.
+  Se usa ÚNICAMENTE en `drizzle.config.ts` para correr migraciones
+  (`drizzle-kit generate` / `drizzle-kit migrate`). Las migraciones no
+  funcionan bien a través del transaction pooler.
+
+Nunca usar DIRECT_URL en runtime de la app — agotaría las conexiones
+disponibles en el plan Free de Supabase.
 
 ---
 
