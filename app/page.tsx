@@ -134,7 +134,7 @@ export default async function Home() {
         <div className="max-w-[1280px] mx-auto flex flex-col p-4 md:p-16 gap-6">
           <h2 className="text-2xl font-black text-on-primary uppercase tracking-tighter">Moreno Herramientas</h2>
           <div className="pt-4 border-t border-white/10">
-            <p className="text-xs text-white/60">© 2024 Moreno Herramientas. Calidad y Precisión Industrial.</p>
+            <p className="text-xs text-white/60">© 2026 Moreno Herramientas. Calidad y Precisión Industrial.</p>
           </div>
         </div>
       </footer>

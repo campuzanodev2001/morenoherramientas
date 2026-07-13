@@ -28,16 +28,16 @@ Crear las cuentas y obtener las claves de cada integración (todas tienen su lug
 - [ ] **Andreani / Correo Argentino** → credenciales reales de carrier *(pendiente)*
 - [x] **Sentry / Axiom** → DSN, `org=campuzano-web-design`, `project=morenoherramientas`,
       auth token, `AXIOM_TOKEN`, `AXIOM_DATASET=morenoherramientas` ✅
-- [ ] Generar `NEXTAUTH_SECRET` y `CRON_SECRET` (≥32 chars aleatorios) *(siguen placeholder)*
+- [x] Generar `NEXTAUTH_SECRET` y `CRON_SECRET` (≥32 chars aleatorios) ✅ (13 jul 2026)
 
 ---
 
 ## Fase 2 — Base de datos
 
-- [ ] Aplicar las migraciones Drizzle a la DB de Supabase (incluye la migración `0000`
-      y la de `pg_trgm` + índices GIN)
-- [ ] Verificar que la extensión `pg_trgm` quedó habilitada
-- [ ] Confirmar que las 16 tablas existen
+- [x] Aplicar las migraciones Drizzle a la DB de Supabase (`0000_initial` + `0001_search_trgm`) ✅
+- [x] Verificar que la extensión `pg_trgm` quedó habilitada ✅
+- [x] Confirmar que las 16 tablas existen ✅
+      (índices GIN: `products_name_trgm_idx`, `products_brand_trgm_idx`)
 
 ---
 
