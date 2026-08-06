@@ -235,17 +235,25 @@ disponibles en el plan Free de Supabase.
 
 ## Datos del catálogo — estado y pipeline
 
-Última actualización: 2026-08-06.
+Última actualización: 2026-08-07.
 
 ### Estado actual de la DB
 
 ```
 1743 productos · 0 sin categoría · 22 categorías
- 768 con ficha técnica (más allá del código de fábrica)
-  13 con descripción escrita por el fabricante
+1743 con descripción (100%)
+1713 con al menos una spec · 904 con 3 o más · promedio 2,95
+  30 sin ninguna spec  ← sin marca y sin dato técnico en ninguna fuente
    0 imágenes          ← pendiente
    2 inactivos         ← margen cero, esperando confirmación del cliente
 ```
+
+Origen de las specs: 334 de catálogo oficial de marca (Bremen 313 +
+Lusqtoff 21), 801 derivadas del nombre, 608 solo con marca.
+
+Las descripciones se componen a partir de datos verificados: nombre, marca,
+specs confirmadas y el texto del fabricante cuando el catálogo lo trae. No
+afirman usos ni prestaciones que no estén respaldados.
 
 Los 12 productos mock del seed fueron borrados. `seed-mock-products.ts` sigue
 existiendo para testear flujos, pero NO correrlo contra la DB con datos reales.
@@ -291,7 +299,8 @@ xlsx → CSV → clean-stock.ts → productos-limpios.json → import-stock.ts �
 |---|---|
 | `clean-stock.ts` | Limpia nombres, saca códigos y notas internas, Title Case |
 | `import-stock.ts` | Inserta/actualiza por `sku`. Idempotente. Tiene `--dry-run` |
-| `enrich-bremen.ts` | Specs desde el catálogo oficial Bremen |
+| `enrich-bremen.ts` | Specs desde el catálogo Bremen (formato columnas) |
+| `enrich-catalog.ts` | Specs desde catálogos con ficha por producto (Lusqtoff) |
 | `apply-specs.ts` | Combina specs de catálogo + derivadas del nombre → DB |
 | `apply-categories.ts` | Crea la taxonomía y asigna categoría a cada producto |
 
@@ -345,10 +354,22 @@ Aplicar el mismo criterio a cualquier catálogo nuevo.
 | Marca | Productos | Estado |
 |---|---|---|
 | Bremen | 486 | ✅ 313 con specs verificadas (catálogo PDF oficial) |
-| Eurotech | 333 | ❌ sin catálogo público — **el hueco más grande** |
+| Lusqtoff | 78 | ✅ 21 verificadas. 43 no están en el catálogo 2024-25 |
+| Eurotech | 333 | ⚠️ catálogo hallado pero de formato pobre (ver abajo) |
 | Bosch | 103 | pendiente; cruzable por código de fábrica y por EAN |
-| Rutmann, Lusqtoff, DeWALT, PZ Force, GD Tools | 349 | pendiente |
-| Resto (75 marcas) | 513 | solo specs derivadas del nombre |
+| Rutmann, DeWALT, PZ Force, GD Tools | 271 | pendiente |
+| Resto (75 marcas) | 472 | solo specs derivadas del nombre |
+
+**Catálogos ya descargados** (en `data/`, gitignored): Bremen, Lusqtoff y
+dos de Eurotech. El segundo de Eurotech (`eurotech2.pdf`) es escaneado y no
+tiene capa de texto: inútil sin OCR.
+
+**Eurotech**: el catálogo público (`eurotech.pdf`, 33 págs) no usa
+`etiqueta: valor` sino `# CÓDIGO` suelto con texto libre alrededor, con la
+misma ambigüedad de asignación que Bremen pero sin columnas que permitan
+verificar. 134 de los 333 SKU aparecen en el PDF, así que hay material, pero
+extraerlo con garantías necesita un parser propio. Sigue siendo el hueco
+más grande y lo más rentable a atacar.
 
 Para las marcas internacionales el **SKU es el EAN**, así que hay dos claves
 de cruce independientes (código de fábrica y EAN) y una valida a la otra.
