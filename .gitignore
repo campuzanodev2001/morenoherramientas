@@ -42,6 +42,9 @@ yarn-error.log*
 /.claude/skills/
 /skills-lock.json
 
+# datos del proveedor — contienen precios de costo y márgenes, nunca al repo
+/data/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
