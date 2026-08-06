@@ -14,24 +14,37 @@
 
 ## Script de importación masiva
 
-### El Excel existente tiene esta estructura
+> ⚠️ **ESTA SECCIÓN QUEDÓ OBSOLETA (2026-08-06).**
+> La importación masiva ya está hecha y documentada en CLAUDE.md, sección
+> "Datos del catálogo — estado y pipeline". Los scripts vigentes son
+> `clean-stock.ts` → `import-stock.ts`. `scripts/import-products.ts` fue
+> **borrado** y no hay que resucitarlo.
+>
+> El error que tenía este documento: **el número embebido en el nombre NO es
+> el precio de venta, es el PRECIO DE COSTO.** Verificado sobre la planilla
+> real: de 2033 filas con ese patrón, 1994 coinciden exacto con la columna
+> `P. Costo` y 0 con `P. Venta`. Seguir estas instrucciones publicaba los
+> márgenes de la ferretería como precio al público.
+>
+> Se publica `P. Venta`. Ver CLAUDE.md antes de tocar nada de esto.
+
+### El Excel real tiene esta estructura
 ```
-Código      → SKU del producto
-Producto    → "NOMBRE DEL PRODUCTO /PRECIO/"  (precio embebido en el nombre)
+Código       → SKU del producto
+Producto     → "NOMBRE DEL PRODUCTO /COSTO/"  ← es el COSTO, no el precio
+P. Costo     → precio de costo. NUNCA se publica
+P. Venta     → el precio que va a la tienda
 Departamento → marca del fabricante (no es una categoría)
-Existencia   → stock actual
+Existencia   → stock actual ("-" = el cliente no lleva control, no es 0)
 ```
-
-### Proceso de limpieza
-
-1. Extraer precio: regex `/(\d+)\/$/` sobre el campo Producto
-2. Limpiar nombre: remover el patrón `/PRECIO/` del final
-3. Si no se puede extraer precio → loggear en `import-errors.log` y saltar
-4. Código → SKU
-5. Departamento → campo `brand` (no a categorías)
-6. Slugify del nombre con manejo de caracteres especiales del español
 
 ### Categorización automática por palabras clave
+
+> ⚠️ **OBSOLETO.** Estas 10 categorías genéricas de ferretería de hogar
+> dejaban el 64% del catálogo en "sin-categorizar", porque este catálogo es
+> de mecánica y taller. La taxonomía vigente son 21 categorías definidas en
+> `lib/catalog/categorization.ts` y aplicadas con `apply-categories.ts`:
+> deja 4 productos sin categorizar sobre 1743 (0,2%).
 
 Mapa de palabras clave → slug de categoría:
 ```
@@ -68,7 +81,8 @@ import-errors.log:
 ### Orden de ejecución
 ```bash
 npx tsx scripts/generate-categories.ts    # primero
-npx tsx scripts/import-products.ts ./data/STOCK.xlsx
+npx tsx scripts/clean-stock.ts data/stock-raw.csv
+npx tsx --env-file=.env.local scripts/import-stock.ts
 ```
 
 ---

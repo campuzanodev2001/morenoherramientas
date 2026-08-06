@@ -39,8 +39,13 @@ documentando el motivo en el campo `blockedReason`.
 
 ## El proyecto
 
-Tienda online para ferretería argentina (+5.000 productos).
-Panel admin propio en /admin. Compradores con o sin cuenta registrada.
+Tienda online para ferretería argentina. Panel admin propio en /admin.
+Compradores con o sin cuenta registrada.
+
+El catálogo NO es de ferretería de hogar: es de **mecánica y taller**.
+El grueso son bocallaves, llaves, extractores, mechas y herramientas de
+puesta a punto de automotor. Tenerlo presente al escribir copy, categorías
+o cualquier heurística sobre nombres de producto.
 
 ---
 
@@ -101,7 +106,9 @@ Panel admin propio en /admin. Compradores con o sin cuenta registrada.
 │   ├── logger/           → Axiom + Sentry helpers
 │   ├── rate-limit/
 │   └── utils/
-├── scripts/              → Importación masiva, seeds
+├── scripts/              → Pipeline de catálogo (ver "Datos del catálogo")
+├── data/                 → Planillas del cliente y salidas del pipeline.
+│                           GITIGNORED: tiene precios de costo y márgenes.
 └── middleware.ts
 ```
 
@@ -223,6 +230,157 @@ Supabase expone dos connection strings distintas para el mismo proyecto:
 
 Nunca usar DIRECT_URL en runtime de la app — agotaría las conexiones
 disponibles en el plan Free de Supabase.
+
+---
+
+## Datos del catálogo — estado y pipeline
+
+Última actualización: 2026-08-06.
+
+### Estado actual de la DB
+
+```
+1743 productos · 0 sin categoría · 22 categorías
+ 768 con ficha técnica (más allá del código de fábrica)
+  13 con descripción escrita por el fabricante
+   0 imágenes          ← pendiente
+   2 inactivos         ← margen cero, esperando confirmación del cliente
+```
+
+Los 12 productos mock del seed fueron borrados. `seed-mock-products.ts` sigue
+existiendo para testear flujos, pero NO correrlo contra la DB con datos reales.
+
+### Origen de los datos
+
+El cliente manda `STOCK MORENO HERRMIENTAS.xlsx` (8375 filas, hoja única).
+Columnas: `Código, Producto, P. Costo, P. Venta, P. Mayoreo, Departamento,
+Existencia, Inv. Mínimo, Inv. Máximo, Tipo de Venta, Proveedor`.
+
+Solo se publican las filas con `Existencia > 0` (1745; 2 se descartan por no
+tener nombre → 1743). Las ~6350 filas con `Existencia = "-"` no significan
+"sin stock" sino que el cliente no les lleva control.
+
+### 🔴 El precio de costo viene embebido en el nombre
+
+`"Batea Lavapiezas PALLADINO/420000/"` → ese `/420000/` es el **P. Costo**,
+NO el precio de venta. Verificado: de 2033 filas con ese patrón, 1994
+coinciden exacto con la columna P. Costo y 0 con P. Venta.
+
+**Se publica `P. Venta`. `P. Costo` no sale nunca de `data/`.**
+
+El script viejo `import-products.ts` publicaba el costo como precio público;
+por eso se borró. No resucitarlo.
+
+Al limpiarlo, el patrón hay que anclarlo al final del nombre. Buscarlo suelto
+rompe los nombres que terminan en fracción: `"Enc 1/2/6999/"` pierde el `2` y
+deja el `6999` (el costo) en el título. Pasó, son 17 productos.
+
+### Pipeline
+
+```
+xlsx → CSV → clean-stock.ts → productos-limpios.json → import-stock.ts → DB
+                                        ↓
+                            enrich-bremen.ts → specs-bremen.json
+                                        ↓
+                              apply-specs.ts → DB
+                                        ↓
+                           apply-categories.ts → DB
+```
+
+| Script | Qué hace |
+|---|---|
+| `clean-stock.ts` | Limpia nombres, saca códigos y notas internas, Title Case |
+| `import-stock.ts` | Inserta/actualiza por `sku`. Idempotente. Tiene `--dry-run` |
+| `enrich-bremen.ts` | Specs desde el catálogo oficial Bremen |
+| `apply-specs.ts` | Combina specs de catálogo + derivadas del nombre → DB |
+| `apply-categories.ts` | Crea la taxonomía y asigna categoría a cada producto |
+
+Todos son re-ejecutables. `import-stock.ts` es también el camino para
+refrescar precios y stock cuando llega una planilla nueva.
+
+`data/` está en `.gitignore`: contiene precios de costo y márgenes.
+
+### Criterios acordados con el cliente
+
+- **Fuentes**: catálogo oficial y distribuidor oficial se aceptan directo.
+  Un retailer suelto (MercadoLibre, ferreterías) solo cuenta si dos fuentes
+  independientes coinciden. Si no se puede verificar, **el producto queda sin
+  specs y se anota el motivo**. Nunca inventar un dato.
+- **Procedencia**: va en `data/procedencia-specs.json`, no en la ficha que ve
+  el comprador.
+- **Specs derivadas del nombre**: sí, marcadas como tales. Salen del texto que
+  cargó el cliente, no de inferir qué debería tener el producto.
+- **Cola larga**: priorizar por valor de inventario (precio × stock), no por
+  cantidad de productos.
+- Los códigos salen del título; los de fábrica van a `specs`.
+- Datos logísticos del catálogo (`UNIDAD POR BULTO`, `PRESENTACIÓN`) se
+  descartan: son de mayorista, no le sirven al comprador.
+
+### Trampa al parsear catálogos PDF
+
+El catálogo Bremen (506 páginas) es tabular y al pasarlo a texto queda como
+columnas apiladas, alineadas por posición:
+
+```
+CÓDIGO  3460 3461 3462 ...      MATERIAL  Cr-V
+MEDIDA  8 mm 9 mm 10 mm ...     ENCASTRE  1/2"
+```
+
+Si una página trae varias familias de productos, el orden del texto NO alcanza
+para saber a qué familia pertenece cada columna. Emparejar por orden produce
+errores silenciosos: al código 6342 (pinza de 8") le asignó 6".
+
+**Regla que resolvió esto**: solo una columna **por variante** (medida, largo)
+puede validar el emparejamiento. Que coincida el material no prueba nada,
+porque suele ser el mismo en toda la página aunque la columna esté mal
+asignada. Todo lo asignado se contrasta además contra el nombre del propio
+producto, y si hay contradicción se descarta el producto entero.
+
+Aplicar el mismo criterio a cualquier catálogo nuevo.
+
+### Cobertura por marca
+
+87 marcas. Las 8 primeras son el 73% del catálogo.
+
+| Marca | Productos | Estado |
+|---|---|---|
+| Bremen | 486 | ✅ 313 con specs verificadas (catálogo PDF oficial) |
+| Eurotech | 333 | ❌ sin catálogo público — **el hueco más grande** |
+| Bosch | 103 | pendiente; cruzable por código de fábrica y por EAN |
+| Rutmann, Lusqtoff, DeWALT, PZ Force, GD Tools | 349 | pendiente |
+| Resto (75 marcas) | 513 | solo specs derivadas del nombre |
+
+Para las marcas internacionales el **SKU es el EAN**, así que hay dos claves
+de cruce independientes (código de fábrica y EAN) y una valida a la otra.
+
+### Errores en los datos del cliente, ya detectados
+
+- `6909` "Manija de Fuerza **Enc 1/5**" — ese encastre no existe. El catálogo
+  Bremen dice 1/2. Error de tipeo.
+- `6338` Alicate corte oblicuo: el nombre dice 6", el catálogo 8".
+- 2 productos a **margen cero** (venta = costo), cargados con `active: false`:
+  `7795163034605` bocallave Bremen y `7798325011612` clavadora Omaha.
+- 3 pares de **nombres duplicados** con precios distintos: `Mecha HSS 11.50mm`,
+  `Extractor de Volante Magnètico M16` (los códigos dicen M16 y M20, los dos
+  nombres dicen M16) y `Llave Corta Combinada -14mm`.
+- 2 filas **sin nombre** (solo un código): `6917` y `7795163035213`.
+- 1 producto con la nota interna "cuando se venda eliminarlo de la lista":
+  el cliente no piensa reponerlo.
+
+### Pendientes
+
+1. **Preguntarle al cliente por el recargo Taiwán.** 6 productos traían
+   `(ATENCION TAIWAN +$10000)` en el nombre. La nota se sacó, pero hay que
+   confirmar si ese recargo YA está aplicado en `P. Venta`. Si no lo está,
+   esos 6 se publican baratos y se pierde la diferencia en cada venta.
+2. **Conseguir el catálogo de Eurotech** (333 productos). Es marca de
+   importador argentino: lo más probable es que exista en PDF y circule por el
+   canal mayorista, no por la web abierta. Pedírselo al cliente o al proveedor.
+3. Specs de Bosch, Rutmann, Lusqtoff, DeWALT, PZ Force, GD Tools.
+4. **Descripciones**: redactarlas a partir de las specs ya verificadas, sin
+   agregar ningún dato nuevo. Es reformulación, no generación.
+5. **Imágenes**: el catálogo se publica hoy sin una sola foto.
+6. Resolver los casos especiales de la lista de arriba.
 
 ---
 
