@@ -3,6 +3,14 @@ import { withAxiom } from "next-axiom";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  // /admin/banners y /admin/hero se fusionaron en /admin/home. Se redirigen
+  // para no dejar en 404 un favorito viejo del panel.
+  async redirects() {
+    return [
+      { source: '/admin/banners', destination: '/admin/home', permanent: false },
+      { source: '/admin/hero', destination: '/admin/home', permanent: false },
+    ]
+  },
   images: {
     remotePatterns: [
       {

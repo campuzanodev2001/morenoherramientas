@@ -19,7 +19,7 @@ function parseDate(value: string | null | undefined): Date | null {
 }
 
 function revalidate() {
-  revalidatePath('/admin/banners')
+  revalidatePath('/admin/home')
   revalidatePath('/')
 }
 

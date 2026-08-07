@@ -39,7 +39,7 @@ export default async function AdminDashboardPage() {
           <QuickAction href="/admin/productos/nuevo" icon="add" label="Nuevo producto" />
           <QuickAction href="/admin/productos" icon="inventory_2" label="Productos" />
           <QuickAction href="/admin/categorias" icon="category" label="Categorías" />
-          <QuickAction href="/admin/banners" icon="image" label="Banners" />
+          <QuickAction href="/admin/home" icon="home" label="Home" />
         </div>
       </div>
     </div>

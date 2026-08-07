@@ -97,9 +97,7 @@ export default function BannersManager({ banners }: { banners: BannerRow[] }) {
     'border-2 border-outline px-3 py-2 text-sm font-medium text-on-surface bg-surface focus:outline-none focus:border-primary-container'
 
   return (
-    <div className="p-4 md:p-6 flex flex-col gap-6 max-w-3xl">
-      <h1 className="text-2xl font-black text-on-surface uppercase tracking-tight">Banners</h1>
-
+    <div className="flex flex-col gap-6">
       <form onSubmit={submit} className="bg-surface-container-lowest border border-surface-container p-4 flex flex-col gap-3">
         <span className="text-xs font-black uppercase text-on-surface tracking-wider">
           {editingId ? 'Editar banner' : 'Nuevo banner'}

@@ -10,9 +10,8 @@ const navItems = [
   { href: '/admin/ordenes', label: 'Órdenes', icon: 'receipt_long', exact: false },
   { href: '/admin/productos', label: 'Productos', icon: 'inventory_2', exact: false },
   { href: '/admin/categorias', label: 'Categorías', icon: 'category', exact: false },
-  { href: '/admin/banners', label: 'Banners', icon: 'image', exact: false },
+  { href: '/admin/home', label: 'Home', icon: 'home', exact: false },
   { href: '/admin/secciones', label: 'Secciones', icon: 'view_quilt', exact: false },
-  { href: '/admin/hero', label: 'Hero', icon: 'wallpaper', exact: false },
 ]
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {

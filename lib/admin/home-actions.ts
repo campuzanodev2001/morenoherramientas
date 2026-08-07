@@ -27,6 +27,7 @@ export async function updateHeroAction(input: unknown): Promise<Ok | ServerActio
     const config = await getHomeConfig()
     await setHomeConfig({ ...config, hero })
     revalidatePath('/')
+    revalidatePath('/admin/home')
     return { success: true }
   } catch (error) {
     return handleServerActionError(error)
