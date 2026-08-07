@@ -15,6 +15,12 @@ export type BannerSlide = {
 
 const ROTATE_MS = 6000
 
+/** Medidas que se le piden al optimizador. El tamaño real lo manda el recuadro. */
+const IMAGE_SIZE: Record<BannerDevice, { width: number; height: number }> = {
+  mobile: { width: 900, height: 1200 },
+  desktop: { width: 1600, height: 900 },
+}
+
 /**
  * Carrusel del hero. Muestra un banner a la vez para que el alto ocupado no
  * dependa de cuántos haya cargados: así el bloque entero entra en la pantalla
@@ -61,14 +67,22 @@ export default function BannerCarousel({
           onMouseLeave={() => setPaused(false)}
         >
         {banners.map((banner, i) => {
+          /*
+            Sin `fill` y sin `priority` a propósito. La home renderiza los dos
+            carruseles y esconde uno por CSS; el escondido tiene alto 0, y con
+            `fill` Next avisa por consola, mientras que `priority` forzaba a
+            precargarlo. Es decir: todo visitante se bajaba también el banner
+            del dispositivo que NO está usando. Con medidas explícitas y carga
+            diferida, el escondido no se descarga hasta que se muestra.
+          */
           const content = (
             <Image
               src={banner.imageUrl}
               alt={banner.title}
-              fill
+              width={IMAGE_SIZE[device].width}
+              height={IMAGE_SIZE[device].height}
               sizes={device === 'mobile' ? '100vw' : '(max-width: 1280px) 100vw, 1280px'}
-              className="object-cover"
-              priority={i === 0}
+              className="w-full h-full object-cover"
             />
           )
           return (
