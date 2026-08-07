@@ -107,10 +107,22 @@ export default function BannersManager({ banners }: { banners: BannerRow[] }) {
         </label>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <input className={inputClass} placeholder="Título" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <input className={inputClass} placeholder="Link destino (opcional)" value={form.linkUrl} onChange={(e) => setForm({ ...form, linkUrl: e.target.value })} />
-          <input className={inputClass} type="number" placeholder="Orden" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} />
-          <label className="flex items-center gap-2 text-sm font-bold text-on-surface">
+          <label className="flex flex-col gap-1 text-xs font-bold text-on-surface-variant">
+            Título
+            <input className={inputClass} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-bold text-on-surface-variant">
+            Link destino (opcional)
+            <input className={inputClass} placeholder="/categoria/llaves" value={form.linkUrl} onChange={(e) => setForm({ ...form, linkUrl: e.target.value })} />
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-bold text-on-surface-variant">
+            Orden
+            <input className={inputClass} type="number" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} />
+            <span className="font-medium normal-case text-on-surface-variant/70">
+              Posición entre los banners: el más bajo se muestra primero.
+            </span>
+          </label>
+          <label className="flex items-center gap-2 text-sm font-bold text-on-surface sm:self-end sm:pb-2">
             <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
             Activo
           </label>
