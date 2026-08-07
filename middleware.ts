@@ -27,7 +27,10 @@ function securityHeaders(response: NextResponse): NextResponse {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https://res.cloudinary.com https://*.mercadopago.com https://lh3.googleusercontent.com",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' https://api.mercadopago.com https://*.mercadopago.com",
+      // api.cloudinary.com es el host de subida y NO es el mismo que
+      // res.cloudinary.com (el de entrega, que va en img-src). Sin él, el
+      // upload firmado del admin lo bloquea el navegador.
+      "connect-src 'self' https://api.mercadopago.com https://*.mercadopago.com https://api.cloudinary.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io",
       "frame-src 'self' https://*.mercadopago.com https://*.mercadolibre.com",
       "object-src 'none'",
       "base-uri 'self'",
