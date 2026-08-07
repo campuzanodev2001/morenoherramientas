@@ -4,7 +4,7 @@ import HamburgerMenu from './components/HamburgerMenu'
 import SearchBar from './components/SearchBar'
 import CartHeader from './components/CartHeader'
 import { getHomeConfig } from '@/lib/db/queries/store-settings'
-import { getCategories } from '@/lib/db/queries/categories'
+import { getStoreCategories } from '@/lib/db/queries/categories'
 import { getCardsByIds, getFeaturedCards } from '@/lib/db/queries/catalog'
 import { safe } from '@/lib/db/safe'
 import { formatPrice } from '@/lib/catalog/format'
@@ -32,7 +32,8 @@ export default async function Home() {
     () => getHomeConfig(),
     { hero: { imageUrl: '', title: 'Moreno Herramientas', ctaText: 'Buscar' }, sections: { featuredTitle: 'Destacados', featuredProductIds: [] } },
   )
-  const rootCategories = (await safe(() => getCategories(), [])).slice(0, 6)
+  const allCategories = await safe(() => getStoreCategories(), [])
+  const rootCategories = allCategories.slice(0, 6)
   const featured =
     config.sections.featuredProductIds.length > 0
       ? await safe(() => getCardsByIds(config.sections.featuredProductIds), [])
@@ -76,7 +77,10 @@ export default async function Home() {
                   className="bg-charcoal aspect-square p-4 flex flex-col justify-between group border border-transparent hover:border-accent-red transition-all duration-300"
                 >
                   <span className="text-on-primary text-xs font-black uppercase leading-tight">{cat.name}</span>
-                  <span className="material-symbols-outlined text-accent-red self-end group-hover:translate-x-1 transition-transform duration-200">arrow_forward</span>
+                  <span className="flex items-end justify-between w-full">
+                    <span className="text-on-primary/50 text-[10px] font-black tabular-nums">{cat.productCount}</span>
+                    <span className="material-symbols-outlined text-accent-red group-hover:translate-x-1 transition-transform duration-200">arrow_forward</span>
+                  </span>
                 </Link>
               ))}
             </div>

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import { getStoreCategories } from "@/lib/db/queries/categories";
+import { safe } from "@/lib/db/safe";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -14,9 +16,11 @@ export const metadata: Metadata = {
   description: "Todo para tu taller en un solo lugar",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const categories = await safe(() => getStoreCategories(), []);
+
   return (
     <html lang="es" className={poppins.variable}>
       <head>
@@ -26,7 +30,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-surface text-on-surface antialiased font-sans">
-        <Providers>{children}</Providers>
+        <Providers categories={categories}>{children}</Providers>
       </body>
     </html>
   );

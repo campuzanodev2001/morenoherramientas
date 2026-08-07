@@ -4,15 +4,25 @@ import type { Metadata } from 'next'
 import HamburgerMenu from '@/app/components/HamburgerMenu'
 import CartHeader from '@/app/components/CartHeader'
 import ProductCard from '@/app/components/ProductCard'
-import { getCategoryBySlug, getCategories } from '@/lib/db/queries/categories'
+import Pagination from '@/app/components/Pagination'
+import { getCategoryBySlug, getStoreCategories, type StoreCategory } from '@/lib/db/queries/categories'
 import { getCategoryCards } from '@/lib/db/queries/catalog'
 import { safe } from '@/lib/db/safe'
 
 export const revalidate = 300
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const tree = await safe(() => getCategories(), [])
-  return tree.map((c) => ({ slug: c.slug }))
+  const tree = await safe(() => getStoreCategories(), [])
+  return tree.flatMap((c) => [{ slug: c.slug }, ...c.children.map((s) => ({ slug: s.slug }))])
+}
+
+function findNode(nodes: StoreCategory[], slug: string): StoreCategory | null {
+  for (const node of nodes) {
+    if (node.slug === slug) return node
+    const found = findNode(node.children, slug)
+    if (found) return found
+  }
+  return null
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -39,6 +49,11 @@ export default async function CategoriaPage({
     () => getCategoryCards(slug, page),
     { cards: [], total: 0, totalPages: 1 },
   )
+  const currentPage = Math.min(Math.max(page, 1), totalPages)
+
+  // Solo las subcategorías que hoy tienen stock, con su conteo.
+  const tree = await safe(() => getStoreCategories(), [])
+  const subcategories = findNode(tree, slug)?.children ?? []
 
   return (
     <>
@@ -63,18 +78,21 @@ export default async function CategoriaPage({
 
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-black uppercase border-l-4 border-accent-red pl-3 text-on-surface">{category.name}</h1>
-          <span className="text-sm text-on-surface-variant font-medium">{total} productos</span>
+          <span className="text-sm text-on-surface-variant font-medium">
+            {total} {total === 1 ? 'producto' : 'productos'}
+          </span>
         </div>
 
-        {category.children.length > 0 && (
+        {subcategories.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {category.children.map((sub) => (
+            {subcategories.map((sub) => (
               <Link
                 key={sub.id}
                 href={`/categoria/${sub.slug}`}
                 className="border-2 border-outline px-3 py-1.5 text-xs font-black uppercase text-on-surface hover:border-accent-red hover:text-accent-red transition-colors"
               >
                 {sub.name}
+                <span className="ml-1.5 opacity-60 tabular-nums">{sub.productCount}</span>
               </Link>
             ))}
           </div>
@@ -90,17 +108,7 @@ export default async function CategoriaPage({
           <div className="py-16 text-center text-on-surface-variant font-medium">No hay productos en esta categoría.</div>
         )}
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 pt-2">
-            {page > 1 && (
-              <Link href={`/categoria/${slug}?page=${page - 1}`} className="text-xs font-black uppercase text-primary-container hover:underline">← Anterior</Link>
-            )}
-            <span className="text-xs font-bold text-on-surface-variant">Página {page} de {totalPages}</span>
-            {page < totalPages && (
-              <Link href={`/categoria/${slug}?page=${page + 1}`} className="text-xs font-black uppercase text-primary-container hover:underline">Siguiente →</Link>
-            )}
-          </div>
-        )}
+        <Pagination basePath={`/categoria/${slug}`} page={currentPage} totalPages={totalPages} />
       </main>
     </>
   )

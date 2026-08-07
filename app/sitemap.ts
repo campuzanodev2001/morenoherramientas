@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { and, eq, isNull, desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { products, categories } from '@/lib/db/schemas'
+import { products } from '@/lib/db/schemas'
+import { getStoreCategories, type StoreCategory } from '@/lib/db/queries/categories'
 import { env } from '@/lib/env'
 import { safe } from '@/lib/db/safe'
 
@@ -15,14 +16,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')
 
   const [cats, prods] = await Promise.all([
-    safe(
-      () =>
-        db
-          .select({ slug: categories.slug })
-          .from(categories)
-          .where(eq(categories.active, true)),
-      [],
-    ),
+    // Solo categorías con stock: no tiene sentido indexar listados vacíos.
+    safe(() => getStoreCategories(), []),
     safe(
       () =>
         db
@@ -40,7 +35,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/categorias`, changeFrequency: 'weekly', priority: 0.8 },
   ]
 
-  const categoryUrls: MetadataRoute.Sitemap = cats.map((c) => ({
+  const flatten = (nodes: StoreCategory[]): StoreCategory[] =>
+    nodes.flatMap((n) => [n, ...flatten(n.children)])
+
+  const categoryUrls: MetadataRoute.Sitemap = flatten(cats).map((c) => ({
     url: `${base}/categoria/${c.slug}`,
     changeFrequency: 'weekly',
     priority: 0.8,

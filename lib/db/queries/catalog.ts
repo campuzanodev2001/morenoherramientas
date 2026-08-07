@@ -1,6 +1,7 @@
-import { and, desc, eq, inArray, isNull, ne, count } from 'drizzle-orm'
+import { and, desc, eq, gt, inArray, isNull, ne, count } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { products, productImages, categories } from '@/lib/db/schemas'
+import { products, productImages } from '@/lib/db/schemas'
+import { getCategoryBranchIds } from '@/lib/db/queries/categories'
 import type { Product } from '@/lib/db/types'
 
 export type ProductCard = {
@@ -74,32 +75,37 @@ export type CategoryProductsPage = {
   totalPages: number
 }
 
+export const CATEGORY_PAGE_SIZE = 24
+
+/**
+ * Página de productos de una categoría, incluyendo los de sus subcategorías.
+ * Solo productos con stock: el catálogo se publica sobre existencias reales.
+ */
 export async function getCategoryCards(
   categorySlug: string,
   page = 1,
-  limit = 24,
+  limit = CATEGORY_PAGE_SIZE,
 ): Promise<CategoryProductsPage> {
-  const offset = (Math.max(page, 1) - 1) * limit
-  const conds = [...visible(), eq(categories.slug, categorySlug)]
+  const branchIds = await getCategoryBranchIds(categorySlug)
+  if (branchIds.length === 0) return { cards: [], total: 0, totalPages: 1 }
 
-  const [totalRow] = await db
-    .select({ total: count() })
-    .from(products)
-    .innerJoin(categories, eq(products.categoryId, categories.id))
-    .where(and(...conds))
+  const conds = [...visible(), gt(products.stock, 0), inArray(products.categoryId, branchIds)]
+
+  const [totalRow] = await db.select({ total: count() }).from(products).where(and(...conds))
   const total = totalRow?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+  const safePage = Math.min(Math.max(page, 1), totalPages)
+  const offset = (safePage - 1) * limit
 
   const rows = await db
-    .select({ product: products })
+    .select()
     .from(products)
-    .innerJoin(categories, eq(products.categoryId, categories.id))
     .where(and(...conds))
     .orderBy(desc(products.createdAt), desc(products.id))
     .limit(limit)
     .offset(offset)
 
-  const cards = await toCards(rows.map((r) => r.product))
-  return { cards, total, totalPages: Math.max(1, Math.ceil(total / limit)) }
+  return { cards: await toCards(rows), total, totalPages }
 }
 
 export async function getRelatedCards(
