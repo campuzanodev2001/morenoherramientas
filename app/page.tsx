@@ -6,6 +6,8 @@ import CartHeader from './components/CartHeader'
 import { getHomeConfig } from '@/lib/db/queries/store-settings'
 import { getStoreCategories } from '@/lib/db/queries/categories'
 import { getCardsByIds, getFeaturedCards } from '@/lib/db/queries/catalog'
+import { getActiveBannersByDevice } from '@/lib/db/queries/admin-banners'
+import BannerCarousel, { type BannerSlide } from './components/BannerCarousel'
 import { safe } from '@/lib/db/safe'
 import { formatPrice } from '@/lib/catalog/format'
 import { clientEnv } from '@/lib/env'
@@ -30,8 +32,24 @@ const websiteLd = {
 export default async function Home() {
   const config = await safe(
     () => getHomeConfig(),
-    { hero: { imageUrl: '', title: 'Moreno Herramientas', ctaText: 'Buscar' }, sections: { featuredTitle: 'Destacados', featuredProductIds: [] } },
+    { hero: { title: 'Moreno Herramientas', ctaText: 'Buscar' }, sections: { featuredTitle: 'Destacados', featuredProductIds: [] } },
   )
+  const activeBanners = await safe(() => getActiveBannersByDevice(), { mobile: [], desktop: [] })
+  const toSlides = (rows: { id: string; title: string; imageUrl: string; linkUrl: string | null }[]): BannerSlide[] =>
+    rows.map((b) => ({ id: b.id, title: b.title, imageUrl: b.imageUrl, linkUrl: b.linkUrl }))
+  const banners = { mobile: toSlides(activeBanners.mobile), desktop: toSlides(activeBanners.desktop) }
+
+  // El hero toma la pantalla completa solo donde efectivamente hay banner: sin
+  // banners cargados no tiene sentido reservar un viewport de espacio en blanco.
+  const heroHeightClass =
+    banners.mobile.length > 0 && banners.desktop.length > 0
+      ? 'h-[calc(100dvh-4rem)]'
+      : banners.desktop.length > 0
+        ? 'md:h-[calc(100dvh-4rem)]'
+        : banners.mobile.length > 0
+          ? 'h-[calc(100dvh-4rem)] md:h-auto'
+          : ''
+
   const allCategories = await safe(() => getStoreCategories(), [])
   const rootCategories = allCategories.slice(0, 6)
   const featured =
@@ -53,17 +71,31 @@ export default async function Home() {
       </header>
 
       <main className="flex flex-col gap-8 md:gap-12 pt-16">
-        <section
-          className="relative bg-cover bg-center flex flex-col h-[calc(100dvh-4rem)] md:h-auto md:min-h-[600px]"
-          style={config.hero.imageUrl ? { backgroundImage: `url('${config.hero.imageUrl}')` } : { backgroundColor: '#1f2937' }}
-        >
-          <div className="absolute inset-0 bg-primary-container/35" />
-          <div className="relative z-10 flex flex-col gap-6 px-4 md:px-16 py-12 md:py-20 max-w-[1280px] mx-auto w-full justify-center h-full">
-            <h2 className="text-4xl md:text-6xl leading-[1.1] text-on-primary font-black tracking-tighter uppercase text-center drop-shadow-lg">
+        {/*
+          El bloque entero entra en la pantalla: alto fijo de un viewport menos
+          el header, con el eslogan y el buscador arriba (shrink-0) y el
+          carrusel ocupando lo que sobra. Así el banner nunca empuja contenido
+          fuera de la pantalla, haya uno o seis.
+        */}
+        <section className={`${heroHeightClass} flex flex-col overflow-hidden bg-surface`}>
+          <div className="shrink-0 flex flex-col gap-4 px-4 md:px-16 pt-6 md:pt-10 pb-4 max-w-[1280px] mx-auto w-full">
+            <h2 className="text-2xl md:text-5xl leading-[1.1] text-on-surface font-black tracking-tighter uppercase text-center">
               {config.hero.title}
             </h2>
-            <SearchBar />
+            <SearchBar ctaText={config.hero.ctaText} />
           </div>
+
+          {/* Dos juegos distintos de banners: se elige por ancho real de pantalla, no por user-agent. */}
+          {banners.mobile.length > 0 && (
+            <div className="flex-1 min-h-0 px-4 pb-6 w-full md:hidden">
+              <BannerCarousel banners={banners.mobile} device="mobile" className="h-full" />
+            </div>
+          )}
+          {banners.desktop.length > 0 && (
+            <div className="flex-1 min-h-0 px-4 md:px-16 pb-6 max-w-[1280px] mx-auto w-full hidden md:block">
+              <BannerCarousel banners={banners.desktop} device="desktop" className="h-full" />
+            </div>
+          )}
         </section>
 
         {rootCategories.length > 0 && (

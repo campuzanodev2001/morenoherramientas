@@ -45,3 +45,4 @@ export type { ShippingAddress } from './schemas/orders'
 export type { ProductSpec } from './schemas/products'
 export type OrderStatus = Order['status']
 export type Role = User['role']
+export type BannerDevice = Banner['device']

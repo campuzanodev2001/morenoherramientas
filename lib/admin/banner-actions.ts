@@ -32,6 +32,7 @@ export async function createBannerAction(input: BannerInput): Promise<Result> {
       .values({
         title: data.title,
         imageUrl: data.imageUrl,
+        device: data.device,
         linkUrl: data.linkUrl || null,
         order: data.order,
         active: data.active,
@@ -59,6 +60,7 @@ export async function updateBannerAction(id: string, input: BannerInput): Promis
       .set({
         title: data.title,
         imageUrl: data.imageUrl,
+        device: data.device,
         linkUrl: data.linkUrl || null,
         order: data.order,
         active: data.active,

@@ -1,4 +1,5 @@
 import { pgTable, text, integer, boolean, timestamp } from 'drizzle-orm/pg-core'
+import { bannerDevice } from './enums'
 import { pk } from './_helpers'
 
 export const banners = pgTable('banners', {
@@ -6,6 +7,7 @@ export const banners = pgTable('banners', {
   title: text('title').notNull(),
   imageUrl: text('image_url').notNull(),
   linkUrl: text('link_url'),
+  device: bannerDevice('device').default('desktop').notNull(),
   order: integer('order').default(0).notNull(),
   active: boolean('active').default(true).notNull(),
   startsAt: timestamp('starts_at', { withTimezone: true }),

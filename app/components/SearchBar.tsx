@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function SearchBar() {
+export default function SearchBar({ ctaText = 'Buscar productos' }: { ctaText?: string }) {
   const [query, setQuery] = useState('')
   const router = useRouter()
 
@@ -32,7 +32,7 @@ export default function SearchBar() {
         onClick={handleSearch}
         className="bg-accent-red text-on-primary py-4 px-6 flex items-center justify-center gap-2 uppercase tracking-widest font-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,0.25)] rounded-none whitespace-nowrap"
       >
-        Buscar productos
+        {ctaText}
         <span className="material-symbols-outlined text-xl">arrow_forward</span>
       </button>
     </div>

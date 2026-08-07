@@ -2,31 +2,17 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { uploadToCloudinary } from '@/lib/cloudinary/upload-client'
+import Link from 'next/link'
 import { updateHeroAction } from '@/lib/admin/home-actions'
 
-type Hero = { imageUrl: string; title: string; ctaText: string }
+type Hero = { title: string; ctaText: string }
 
 export default function HeroForm({ initial }: { initial: Hero }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [form, setForm] = useState(initial)
-  const [uploadPct, setUploadPct] = useState<number | null>(null)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
-
-  async function onFile(file: File | undefined) {
-    if (!file) return
-    setUploadPct(0)
-    try {
-      const url = await uploadToCloudinary(file, 'hero', setUploadPct)
-      setForm((f) => ({ ...f, imageUrl: url }))
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al subir')
-    } finally {
-      setUploadPct(null)
-    }
-  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -50,25 +36,15 @@ export default function HeroForm({ initial }: { initial: Hero }) {
     <form onSubmit={submit} className="p-4 md:p-6 flex flex-col gap-4 max-w-2xl">
       <h1 className="text-2xl font-black text-on-surface uppercase tracking-tight">Hero</h1>
 
-      {form.imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={form.imageUrl} alt="" className="w-full h-48 object-cover border border-surface-container" />
-      )}
-      {uploadPct !== null && (
-        <div className="h-2 bg-surface-container">
-          <div className="h-2 bg-primary-container" style={{ width: `${uploadPct}%` }} />
-        </div>
-      )}
+      <p className="text-sm text-on-surface-variant font-medium border-l-4 border-outline-variant pl-3">
+        La imagen de fondo del hero la reemplazaron los banners.{' '}
+        <Link href="/admin/banners" className="text-primary-container font-bold hover:underline">
+          Cargalos en Banners
+        </Link>
+        , que tiene una pieza para desktop y otra para mobile.
+      </p>
 
-      <label className="text-xs font-black uppercase text-primary-container hover:underline cursor-pointer self-start">
-        Subir imagen
-        <input type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
-      </label>
-
-      <Field label="URL de imagen">
-        <input className={inputClass} value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
-      </Field>
-      <Field label="Título">
+      <Field label="Eslogan">
         <input className={inputClass} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
       </Field>
       <Field label="Texto del botón">
@@ -78,7 +54,7 @@ export default function HeroForm({ initial }: { initial: Hero }) {
       {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
       {saved && <p className="text-sm text-green-700 font-medium">Guardado ✓</p>}
 
-      <button type="submit" disabled={pending || uploadPct !== null} className="bg-primary-container text-on-primary font-black uppercase py-3 px-6 self-start disabled:opacity-50">
+      <button type="submit" disabled={pending} className="bg-primary-container text-on-primary font-black uppercase py-3 px-6 self-start disabled:opacity-50">
         {pending ? 'Guardando…' : 'Guardar'}
       </button>
     </form>

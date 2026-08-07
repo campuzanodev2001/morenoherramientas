@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const bannerInputSchema = z.object({
   title: z.string().min(1, 'Ingresá el título'),
   imageUrl: z.url('Subí una imagen'),
+  device: z.enum(['mobile', 'desktop']),
   linkUrl: z.string().optional().default(''),
   order: z.coerce.number().int().default(0),
   active: z.boolean().default(true),

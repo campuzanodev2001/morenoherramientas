@@ -15,6 +15,13 @@
       "when": 1782334500000,
       "tag": "0001_search_trgm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786107126150,
+      "tag": "0002_banner_device",
+      "breakpoints": true
     }
   ]
 }

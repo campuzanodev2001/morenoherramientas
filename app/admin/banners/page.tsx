@@ -16,6 +16,7 @@ export default async function BannersAdminPage() {
     id: b.id,
     title: b.title,
     imageUrl: b.imageUrl,
+    device: b.device,
     linkUrl: b.linkUrl ?? '',
     order: b.order,
     active: b.active,

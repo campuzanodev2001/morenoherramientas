@@ -4,11 +4,14 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { uploadToCloudinary } from '@/lib/cloudinary/upload-client'
 import { createBannerAction, updateBannerAction, deleteBannerAction } from '@/lib/admin/banner-actions'
+import { BANNER_ASPECT_CLASS, BANNER_DEVICE_LABEL, BANNER_DEVICES } from '@/lib/banners/display'
+import type { BannerDevice } from '@/lib/db/types'
 
 export type BannerRow = {
   id: string
   title: string
   imageUrl: string
+  device: BannerDevice
   linkUrl: string
   order: number
   active: boolean
@@ -16,7 +19,16 @@ export type BannerRow = {
   endsAt: string
 }
 
-const blank = { title: '', imageUrl: '', linkUrl: '', order: 0, active: true, startsAt: '', endsAt: '' }
+const blank = {
+  title: '',
+  imageUrl: '',
+  device: 'desktop' as BannerDevice,
+  linkUrl: '',
+  order: 0,
+  active: true,
+  startsAt: '',
+  endsAt: '',
+}
 
 export default function BannersManager({ banners }: { banners: BannerRow[] }) {
   const router = useRouter()
@@ -56,6 +68,7 @@ export default function BannersManager({ banners }: { banners: BannerRow[] }) {
     const input = {
       title: form.title,
       imageUrl: form.imageUrl,
+      device: form.device,
       linkUrl: form.linkUrl,
       order: Number(form.order),
       active: form.active,
@@ -92,10 +105,50 @@ export default function BannersManager({ banners }: { banners: BannerRow[] }) {
           {editingId ? 'Editar banner' : 'Nuevo banner'}
         </span>
 
-        {form.imageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={form.imageUrl} alt="" className="w-full h-32 object-cover border border-surface-container" />
-        )}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-bold text-on-surface-variant">Dónde se muestra</span>
+          <div className="flex gap-2">
+            {BANNER_DEVICES.map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setForm({ ...form, device: d })}
+                className={`flex-1 border-2 px-3 py-2 text-xs font-black uppercase transition-colors ${
+                  form.device === d
+                    ? 'border-accent-red bg-accent-red text-on-primary'
+                    : 'border-outline text-on-surface hover:border-accent-red'
+                }`}
+              >
+                {BANNER_DEVICE_LABEL[d]}
+              </button>
+            ))}
+          </div>
+          <span className="text-xs font-medium text-on-surface-variant/70">
+            Son piezas distintas: el de desktop es apaisado y el de mobile vertical. Cargá uno de
+            cada uno para que la home tenga banner en las dos pantallas.
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-bold text-on-surface-variant">
+            Imagen — se recorta a {form.device === 'mobile' ? '3:4' : '16:9'}
+          </span>
+          <div
+            className={`${BANNER_ASPECT_CLASS[form.device]} ${
+              form.device === 'mobile' ? 'max-w-[220px]' : 'max-w-full'
+            } w-full border-2 border-dashed border-outline bg-surface-container flex items-center justify-center overflow-hidden`}
+          >
+            {form.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs font-bold text-on-surface-variant/60 px-2 text-center">
+                Así se va a ver el banner
+              </span>
+            )}
+          </div>
+        </div>
+
         {uploadPct !== null && (
           <div className="h-2 bg-surface-container">
             <div className="h-2 bg-primary-container" style={{ width: `${uploadPct}%` }} />
@@ -149,30 +202,51 @@ export default function BannersManager({ banners }: { banners: BannerRow[] }) {
         </div>
       </form>
 
-      <div className="flex flex-col gap-2">
-        {banners.map((b) => (
-          <div key={b.id} className="bg-surface-container-lowest border border-surface-container p-3 flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={b.imageUrl} alt="" className="w-24 h-14 object-cover shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-black text-on-surface text-xs uppercase truncate">{b.title}</span>
-                {!b.active && <span className="text-[10px] font-bold bg-gray-200 text-gray-700 px-1.5 py-0.5 uppercase">Inactivo</span>}
-              </div>
-              <span className="text-xs text-on-surface-variant">orden {b.order}{b.linkUrl ? ` · → ${b.linkUrl}` : ''}</span>
+      {BANNER_DEVICES.map((device) => {
+        const group = banners.filter((b) => b.device === device)
+        return (
+          <div key={device} className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase text-on-surface tracking-wider">
+                {BANNER_DEVICE_LABEL[device]}
+              </span>
+              <span className="text-[10px] font-black px-1.5 py-0.5 bg-surface-container text-on-surface-variant tabular-nums">
+                {group.length}
+              </span>
             </div>
-            <button onClick={() => startEdit(b)} className="text-on-surface-variant hover:text-primary-container p-1.5" title="Editar">
-              <span className="material-symbols-outlined text-lg">edit</span>
-            </button>
-            <button onClick={() => remove(b.id)} disabled={pending} className="text-on-surface-variant hover:text-accent-red p-1.5 disabled:opacity-40" title="Borrar">
-              <span className="material-symbols-outlined text-lg">delete</span>
-            </button>
+
+            {group.length === 0 ? (
+              <div className="py-8 text-center text-on-surface-variant text-sm font-medium border border-dashed border-outline-variant">
+                Sin banners para {device}. La home no muestra nada en esta pantalla.
+              </div>
+            ) : (
+              group.map((b) => (
+                <div key={b.id} className="bg-surface-container-lowest border border-surface-container p-3 flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={b.imageUrl}
+                    alt=""
+                    className={`shrink-0 object-cover ${device === 'mobile' ? 'w-12 h-16' : 'w-24 h-14'}`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-on-surface text-xs uppercase truncate">{b.title}</span>
+                      {!b.active && <span className="text-[10px] font-bold bg-gray-200 text-gray-700 px-1.5 py-0.5 uppercase">Inactivo</span>}
+                    </div>
+                    <span className="text-xs text-on-surface-variant">orden {b.order}{b.linkUrl ? ` · → ${b.linkUrl}` : ''}</span>
+                  </div>
+                  <button onClick={() => startEdit(b)} className="text-on-surface-variant hover:text-primary-container p-1.5" title="Editar">
+                    <span className="material-symbols-outlined text-lg">edit</span>
+                  </button>
+                  <button onClick={() => remove(b.id)} disabled={pending} className="text-on-surface-variant hover:text-accent-red p-1.5 disabled:opacity-40" title="Borrar">
+                    <span className="material-symbols-outlined text-lg">delete</span>
+                  </button>
+                </div>
+              ))
+            )}
           </div>
-        ))}
-        {banners.length === 0 && (
-          <div className="py-12 text-center text-on-surface-variant text-sm font-medium">No hay banners todavía</div>
-        )}
-      </div>
+        )
+      })}
     </div>
   )
 }

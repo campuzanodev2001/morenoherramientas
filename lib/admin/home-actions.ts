@@ -7,8 +7,8 @@ import { parseOrThrow } from '@/lib/errors/validation'
 import { handleServerActionError, type ServerActionError } from '@/lib/errors/handlers'
 import { getHomeConfig, setHomeConfig } from '@/lib/db/queries/store-settings'
 
+// La imagen del hero la reemplazaron los banners: el hero es solo texto.
 const heroSchema = z.object({
-  imageUrl: z.url('URL de imagen inválida'),
   title: z.string().min(1, 'Ingresá el título'),
   ctaText: z.string().min(1, 'Ingresá el texto del botón'),
 })
