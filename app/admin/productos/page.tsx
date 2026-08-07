@@ -1,13 +1,35 @@
 import Link from 'next/link'
-import { listProductsAdmin } from '@/lib/db/queries/admin-products'
+import {
+  listProductsAdmin,
+  isProductSortKey,
+  isSortDirection,
+  DEFAULT_PRODUCT_SORT,
+  DEFAULT_PRODUCT_DIR,
+  type ProductSortKey,
+  type SortDirection,
+} from '@/lib/db/queries/admin-products'
 import { listCategoriesFlat } from '@/lib/db/queries/admin-categories'
 import ProductsFilterBar from './ProductsFilterBar'
 import ProductRowActions from './ProductRowActions'
+import SortableHeader from './SortableHeader'
 
 export const dynamic = 'force-dynamic'
 
 function formatPrice(cents: number): string {
   return '$' + (cents / 100).toLocaleString('es-AR')
+}
+
+/**
+ * Dirección con la que arranca cada columna al clickearla por primera vez:
+ * alfabéticas de la A a la Z, numéricas y de fecha de mayor a menor.
+ */
+const FIRST_CLICK_DIR: Record<ProductSortKey, SortDirection> = {
+  name: 'asc',
+  category: 'asc',
+  price: 'desc',
+  stock: 'desc',
+  active: 'desc',
+  created: 'desc',
 }
 
 export default async function ProductsAdminPage({
@@ -22,8 +44,13 @@ export default async function ProductsAdminPage({
   const active = estado === 'activos' ? true : estado === 'inactivos' ? false : undefined
   const page = Number(sp.page) > 0 ? Number(sp.page) : 1
 
+  const sort: ProductSortKey =
+    typeof sp.sort === 'string' && isProductSortKey(sp.sort) ? sp.sort : DEFAULT_PRODUCT_SORT
+  const dir: SortDirection =
+    typeof sp.dir === 'string' && isSortDirection(sp.dir) ? sp.dir : DEFAULT_PRODUCT_DIR
+
   const [data, categories] = await Promise.all([
-    listProductsAdmin({ search, categoryId, active, page }),
+    listProductsAdmin({ search, categoryId, active, page, sort, dir }),
     listCategoriesFlat(),
   ])
 
@@ -32,14 +59,31 @@ export default async function ProductsAdminPage({
     label: `${'— '.repeat(c.depth)}${c.name}`,
   }))
 
-  function pageHref(p: number): string {
+  function buildHref(overrides: { page?: number; sort?: ProductSortKey; dir?: SortDirection }): string {
     const params = new URLSearchParams()
     if (search) params.set('q', search)
     if (categoryId) params.set('cat', categoryId)
     if (estado) params.set('estado', estado)
-    params.set('page', String(p))
-    return `/admin/productos?${params}`
+    const nextSort = overrides.sort ?? sort
+    const nextDir = overrides.dir ?? dir
+    if (nextSort !== DEFAULT_PRODUCT_SORT || nextDir !== DEFAULT_PRODUCT_DIR) {
+      params.set('sort', nextSort)
+      params.set('dir', nextDir)
+    }
+    const nextPage = overrides.page ?? page
+    if (nextPage > 1) params.set('page', String(nextPage))
+    return `/admin/productos${params.toString() ? `?${params}` : ''}`
   }
+
+  /** Clickear la columna activa invierte el orden; otra columna arranca en su dirección natural. */
+  function sortHref(key: ProductSortKey): string {
+    const nextDir: SortDirection =
+      sort === key ? (dir === 'asc' ? 'desc' : 'asc') : FIRST_CLICK_DIR[key]
+    // Vuelve a la página 1: la fila que estabas viendo ya no está en esta posición.
+    return buildHref({ sort: key, dir: nextDir, page: 1 })
+  }
+
+  const dirOf = (key: ProductSortKey): SortDirection | null => (sort === key ? dir : null)
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-4">
@@ -62,18 +106,21 @@ export default async function ProductsAdminPage({
         initialCategory={categoryId ?? ''}
         initialEstado={estado}
         categories={categoryOptions}
+        sortParams={
+          sort === DEFAULT_PRODUCT_SORT && dir === DEFAULT_PRODUCT_DIR ? null : { sort, dir }
+        }
       />
 
       <div className="w-full bg-surface-container-lowest border border-surface-container overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b-2 border-primary-container">
-              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider">Producto</th>
-              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider hidden md:table-cell">Categoría</th>
-              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider">Precio</th>
-              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider hidden sm:table-cell">Stock</th>
-              <th className="text-left px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider">Estado</th>
-              <th className="px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider text-right">Acciones</th>
+              <SortableHeader label="Producto" href={sortHref('name')} direction={dirOf('name')} />
+              <SortableHeader label="Categoría" href={sortHref('category')} direction={dirOf('category')} className="hidden md:table-cell" />
+              <SortableHeader label="Precio" href={sortHref('price')} direction={dirOf('price')} />
+              <SortableHeader label="Stock" href={sortHref('stock')} direction={dirOf('stock')} className="hidden sm:table-cell" />
+              <SortableHeader label="Estado" href={sortHref('active')} direction={dirOf('active')} />
+              <th scope="col" className="px-4 py-3 text-xs font-black uppercase text-on-surface tracking-wider text-right">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-container">
@@ -130,7 +177,7 @@ export default async function ProductsAdminPage({
       {data.totalPages > 1 && (
         <div className="flex items-center justify-center gap-3">
           {page > 1 ? (
-            <Link href={pageHref(page - 1)} className="text-xs font-black uppercase text-primary-container hover:underline">
+            <Link href={buildHref({ page: page - 1 })} className="text-xs font-black uppercase text-primary-container hover:underline">
               ← Anterior
             </Link>
           ) : (
@@ -140,7 +187,7 @@ export default async function ProductsAdminPage({
             Página {page} de {data.totalPages}
           </span>
           {page < data.totalPages ? (
-            <Link href={pageHref(page + 1)} className="text-xs font-black uppercase text-primary-container hover:underline">
+            <Link href={buildHref({ page: page + 1 })} className="text-xs font-black uppercase text-primary-container hover:underline">
               Siguiente →
             </Link>
           ) : (

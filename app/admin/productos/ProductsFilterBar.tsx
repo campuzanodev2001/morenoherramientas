@@ -10,11 +10,14 @@ export default function ProductsFilterBar({
   initialCategory,
   initialEstado,
   categories,
+  sortParams,
 }: {
   initialSearch: string
   initialCategory: string
   initialEstado: string
   categories: Option[]
+  /** Orden actual, para no perderlo al cambiar un filtro. Vacío si es el default. */
+  sortParams: { sort: string; dir: string } | null
 }) {
   const router = useRouter()
   const [search, setSearch] = useState(initialSearch)
@@ -27,6 +30,10 @@ export default function ProductsFilterBar({
     if (q) params.set('q', q)
     if (cat) params.set('cat', cat)
     if (estado) params.set('estado', estado)
+    if (sortParams) {
+      params.set('sort', sortParams.sort)
+      params.set('dir', sortParams.dir)
+    }
     router.push(`/admin/productos${params.toString() ? `?${params}` : ''}`)
   }
 

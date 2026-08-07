@@ -1,7 +1,35 @@
-import { and, count, desc, eq, ilike, isNull, or, inArray } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, isNull, or, inArray } from 'drizzle-orm'
+import type { PgColumn } from 'drizzle-orm/pg-core'
 import { db } from '@/lib/db'
 import { products, productImages, categories } from '@/lib/db/schemas'
 import type { Product, ProductImage } from '@/lib/db/types'
+
+/**
+ * Columnas por las que se puede ordenar el listado de admin. Es una whitelist:
+ * el valor llega por querystring y nunca se interpola en el SQL.
+ */
+const SORT_COLUMNS = {
+  name: products.name,
+  category: categories.name,
+  price: products.price,
+  stock: products.stock,
+  active: products.active,
+  created: products.createdAt,
+} satisfies Record<string, PgColumn>
+
+export type ProductSortKey = keyof typeof SORT_COLUMNS
+export type SortDirection = 'asc' | 'desc'
+
+export const DEFAULT_PRODUCT_SORT: ProductSortKey = 'created'
+export const DEFAULT_PRODUCT_DIR: SortDirection = 'desc'
+
+export function isProductSortKey(value: string): value is ProductSortKey {
+  return value in SORT_COLUMNS
+}
+
+export function isSortDirection(value: string): value is SortDirection {
+  return value === 'asc' || value === 'desc'
+}
 
 export type AdminProductRow = {
   id: string
@@ -21,6 +49,8 @@ export type AdminProductFilters = {
   active?: boolean | undefined
   page?: number | undefined
   limit?: number | undefined
+  sort?: ProductSortKey | undefined
+  dir?: SortDirection | undefined
 }
 
 export type AdminProductPage = {
@@ -55,6 +85,9 @@ export async function listProductsAdmin(filters: AdminProductFilters = {}): Prom
     .where(and(...conds))
   const total = totalRow?.total ?? 0
 
+  const sortColumn = SORT_COLUMNS[filters.sort ?? DEFAULT_PRODUCT_SORT]
+  const direction = (filters.dir ?? DEFAULT_PRODUCT_DIR) === 'asc' ? asc : desc
+
   const rows = await db
     .select({
       id: products.id,
@@ -69,7 +102,9 @@ export async function listProductsAdmin(filters: AdminProductFilters = {}): Prom
     .from(products)
     .leftJoin(categories, eq(products.categoryId, categories.id))
     .where(and(...conds))
-    .orderBy(desc(products.createdAt), desc(products.id))
+    // El id desempata: sin él, filas con el mismo valor pueden repetirse o
+    // desaparecer entre páginas (el orden no es estable en Postgres).
+    .orderBy(direction(sortColumn), desc(products.id))
     .limit(limit)
     .offset(offset)
 
