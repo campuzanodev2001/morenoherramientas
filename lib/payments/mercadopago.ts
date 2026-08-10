@@ -93,6 +93,89 @@ export async function createPayment(input: CreatePaymentInput): Promise<MpPaymen
   }
 }
 
+export type CreatePreferenceInput = {
+  orderId: string
+  orderNumber: string
+  /** Ítems de la orden, con precios ya recalculados en el servidor. */
+  items: { title: string; quantity: number; unitPriceCents: number }[]
+  /** Costo de envío en centavos: viaja como un ítem más de la preferencia. */
+  shippingCents: number
+  payerEmail: string
+  payerName?: string | undefined
+}
+
+/**
+ * Crea la preferencia (POST /checkout/preferences) que habilita en el Payment
+ * Brick los medios "Dinero en cuenta de Mercado Pago" y "Cuotas sin tarjeta".
+ *
+ * Esos dos medios NO se cobran desde nuestro backend: el Brick redirige al
+ * comprador al sitio de MP usando este `preferenceId`, y el resultado nos llega
+ * por el webhook. Por eso `external_reference` es el id de la orden — es la
+ * única forma que tiene el webhook de saber qué orden confirmar.
+ *
+ * `purpose` se omite a propósito: fijarlo en `wallet_purchase` limitaría la
+ * preferencia a dinero en cuenta, y en `onboarding_credits` a cuotas sin
+ * tarjeta. Sin `purpose` la preferencia acepta los dos.
+ */
+export async function createPreference(input: CreatePreferenceInput): Promise<string> {
+  const items = input.items.map((item) => ({
+    title: item.title.slice(0, 250),
+    quantity: item.quantity,
+    unit_price: item.unitPriceCents / 100,
+    currency_id: 'ARS',
+  }))
+  if (input.shippingCents > 0) {
+    items.push({
+      title: 'Envío',
+      quantity: 1,
+      unit_price: input.shippingCents / 100,
+      currency_id: 'ARS',
+    })
+  }
+
+  const backUrl = `${env.NEXT_PUBLIC_APP_URL}/orden/${input.orderId}`
+  // MP rechaza `auto_return` si las back_urls apuntan a localhost. En local se
+  // omite para que la preferencia igual se cree y el Brick pueda montarse; el
+  // comprador vuelve a mano desde MP.
+  const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)/.test(env.NEXT_PUBLIC_APP_URL)
+
+  const res = await fetch(`${MP_API}/checkout/preferences`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'X-Idempotency-Key': `pref-${input.orderId}` },
+    body: JSON.stringify({
+      items,
+      external_reference: input.orderId,
+      notification_url: `${env.NEXT_PUBLIC_APP_URL}/api/webhooks/mercadopago`,
+      statement_descriptor: 'FERRETERIA',
+      payer: {
+        email: input.payerEmail,
+        ...(input.payerName ? { name: input.payerName } : {}),
+      },
+      back_urls: { success: backUrl, pending: backUrl, failure: backUrl },
+      ...(isLocal ? {} : { auto_return: 'approved' }),
+      metadata: { order_number: input.orderNumber },
+    }),
+    signal: AbortSignal.timeout(15_000),
+  })
+
+  const data = (await res.json().catch(() => null)) as { id?: string; message?: string } | null
+
+  if (!res.ok || !data?.id) {
+    console.error('[payments:mp] createPreference falló', {
+      httpStatus: res.status,
+      mpMessage: data?.message,
+    })
+    logWarn('payments:mp', 'createPreference falló', { status: res.status })
+    throw new PaymentError(
+      'No pudimos habilitar el pago con Mercado Pago. Intentá de nuevo.',
+      'MP_PREFERENCE_FAILED',
+      (data?.message ?? '').slice(0, 200),
+    )
+  }
+
+  return data.id
+}
+
 /** Consulta el estado real de un pago en MP (no confiar en el webhook). */
 export async function getPayment(paymentId: string): Promise<MpPayment> {
   const res = await fetch(`${MP_API}/v1/payments/${paymentId}`, {

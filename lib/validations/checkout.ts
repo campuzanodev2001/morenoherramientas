@@ -66,9 +66,18 @@ export const processPaymentSchema = z.object({
   }),
 })
 
+/**
+ * Preferencia para habilitar "Mercado Pago" y "Mercado Pago sin tarjeta" en el
+ * Brick. Solo viaja el id de la orden: los ítems y el monto salen de la DB.
+ */
+export const createPreferenceSchema = z.object({
+  orderId: z.string().uuid(),
+})
+
 export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>
 export type BuyerInput = z.infer<typeof buyerSchema>
 export type CartLineInput = z.infer<typeof cartLineSchema>
 export type QuoteRequestInput = z.infer<typeof quoteRequestSchema>
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
 export type ProcessPaymentInput = z.infer<typeof processPaymentSchema>
+export type CreatePreferenceInput = z.infer<typeof createPreferenceSchema>

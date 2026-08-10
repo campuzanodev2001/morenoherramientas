@@ -19,6 +19,13 @@ type BrickFormData = {
   }
 }
 
+/**
+ * Medios que MP resuelve en su propio sitio: el Brick redirige usando el
+ * `preferenceId` y el resultado vuelve por el webhook. No hay nada que
+ * mandarle a nuestro backend.
+ */
+const REDIRECT_METHODS = ['wallet_purchase', 'onboarding_credits']
+
 type MpBricksController = {
   create: (
     brick: 'payment',
@@ -26,6 +33,7 @@ type MpBricksController = {
     settings: {
       initialization: {
         amount: number
+        preferenceId?: string
         payer?: { email?: string }
       }
       customization: {
@@ -35,7 +43,10 @@ type MpBricksController = {
       callbacks: {
         onReady?: () => void
         onError?: (error: { message?: string; cause?: string }) => void
-        onSubmit: (arg: { formData: BrickFormData }) => Promise<void>
+        onSubmit: (arg: {
+          selectedPaymentMethod: string
+          formData: BrickFormData
+        }) => Promise<void>
       }
     },
   ) => Promise<{ unmount?: () => void }>
@@ -72,6 +83,25 @@ function loadSdk(): Promise<MpConstructor> {
     script.onerror = () => reject(new Error('No se pudo cargar el SDK'))
     document.body.appendChild(script)
   })
+}
+
+/**
+ * Pide la preferencia de la orden. Devuelve null si no se pudo crear: el Brick
+ * se monta igual, sólo que sin los medios de Mercado Pago (que la exigen).
+ */
+async function fetchPreferenceId(orderId: string): Promise<string | null> {
+  try {
+    const res = await fetch('/api/checkout/create-preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId }),
+    })
+    if (!res.ok) return null
+    const data = (await res.json()) as { preferenceId?: string }
+    return data.preferenceId ?? null
+  } catch {
+    return null
+  }
 }
 
 const CONTAINER_ID = 'payment-brick-container'
@@ -114,12 +144,19 @@ export default function PaymentBricks({
 
     async function render() {
       try {
+        // La preferencia es lo que habilita "Mercado Pago" y "Mercado Pago sin
+        // tarjeta" en el Brick. Si falla, el Brick igual se monta: se pierden
+        // esos dos medios, pero tarjeta y efectivo siguen funcionando.
+        const preferenceId = await fetchPreferenceId(orderId)
+        if (disposed) return
+
         const Mp = await loadSdk()
         if (disposed) return
         const mp = new Mp(clientEnv.NEXT_PUBLIC_MP_PUBLIC_KEY, { locale: 'es-AR' })
         const created = await mp.bricks().create('payment', CONTAINER_ID, {
           initialization: {
             amount: totalCents / 100,
+            ...(preferenceId ? { preferenceId } : {}),
             payer: { email: payerEmail },
           },
           customization: {
@@ -127,6 +164,10 @@ export default function PaymentBricks({
               creditCard: 'all',
               debitCard: 'all',
               ticket: 'all',
+              // 'all' muestra las dos opciones de la billetera: dinero en
+              // cuenta de Mercado Pago y cuotas sin tarjeta. Requiere
+              // preferenceId, así que sólo se pide si la preferencia existe.
+              ...(preferenceId ? { mercadoPago: 'all' } : {}),
             },
           },
           callbacks: {
@@ -139,7 +180,12 @@ export default function PaymentBricks({
             // El Brick espera una promesa: mientras no resuelva, mantiene el
             // botón en estado de carga. Si rechaza, muestra el error y deja
             // reintentar sin perder los datos cargados.
-            onSubmit: async ({ formData }) => {
+            onSubmit: async ({ selectedPaymentMethod, formData }) => {
+              // Billetera y cuotas sin tarjeta: no se cobran desde acá. Al
+              // resolver la promesa el Brick redirige a MP con la preferencia,
+              // y el comprador vuelve a /orden/[id] por las back_urls.
+              if (REDIRECT_METHODS.includes(selectedPaymentMethod)) return
+
               const res = await fetch('/api/checkout/process-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
