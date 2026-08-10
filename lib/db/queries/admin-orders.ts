@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, ilike, lte, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, ilike, inArray, lte, or, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { orders, orderItems, users } from '@/lib/db/schemas'
 import type { Order, OrderItem, OrderStatus, PaymentEvent } from '@/lib/db/types'
@@ -14,7 +14,8 @@ export type AdminOrderRow = {
 }
 
 export type AdminOrderFilters = {
-  status?: OrderStatus | undefined
+  /** Un estado, o varios cuando el filtro es un grupo (ej: "nuevas" = confirmed + processing). */
+  status?: OrderStatus | OrderStatus[] | undefined
   search?: string | undefined
   dateFrom?: string | undefined // ISO yyyy-mm-dd
   dateTo?: string | undefined
@@ -31,7 +32,11 @@ export type AdminOrderPage = {
 
 function buildConds(filters: AdminOrderFilters) {
   const conds = []
-  if (filters.status) conds.push(eq(orders.status, filters.status))
+  if (Array.isArray(filters.status)) {
+    if (filters.status.length > 0) conds.push(inArray(orders.status, filters.status))
+  } else if (filters.status) {
+    conds.push(eq(orders.status, filters.status))
+  }
   if (filters.search && filters.search.trim()) {
     const q = `%${filters.search.trim()}%`
     const m = or(
@@ -41,10 +46,14 @@ function buildConds(filters: AdminOrderFilters) {
     )
     if (m) conds.push(m)
   }
-  if (filters.dateFrom) conds.push(gte(orders.createdAt, new Date(filters.dateFrom)))
+  // Los días se interpretan en hora argentina (UTC-3, sin horario de verano).
+  // Con la Z de UTC el servidor cortaba el día a las 21:00 locales.
+  if (filters.dateFrom) {
+    conds.push(gte(orders.createdAt, new Date(`${filters.dateFrom}T00:00:00.000-03:00`)))
+  }
   if (filters.dateTo) {
     // Incluir todo el día final.
-    conds.push(lte(orders.createdAt, new Date(`${filters.dateTo}T23:59:59.999Z`)))
+    conds.push(lte(orders.createdAt, new Date(`${filters.dateTo}T23:59:59.999-03:00`)))
   }
   return conds
 }

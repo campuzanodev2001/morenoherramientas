@@ -2,6 +2,7 @@ import { and, count, gte, inArray, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { orders } from '@/lib/db/schemas'
 import { getAdminProductStats } from './admin-products'
+import { startOfTodayInArgentina } from '@/lib/utils/date-ar'
 
 export type DashboardStats = {
   products: { total: number; active: number; inactive: number; outOfStock: number }
@@ -11,8 +12,7 @@ export type DashboardStats = {
 }
 
 export async function getAdminDashboardStats(): Promise<DashboardStats> {
-  const startOfDay = new Date()
-  startOfDay.setHours(0, 0, 0, 0)
+  const startOfDay = startOfTodayInArgentina()
 
   const [products, [newOrdersRow], [toProcessRow], [incomeRow]] = await Promise.all([
     getAdminProductStats(),

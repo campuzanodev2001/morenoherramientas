@@ -42,6 +42,7 @@ export default async function ProductsAdminPage({
   const categoryId = typeof sp.cat === 'string' && sp.cat ? sp.cat : undefined
   const estado = typeof sp.estado === 'string' ? sp.estado : ''
   const active = estado === 'activos' ? true : estado === 'inactivos' ? false : undefined
+  const stock = sp.stock === 'sin' ? 'sin' : ''
   const page = Number(sp.page) > 0 ? Number(sp.page) : 1
 
   const sort: ProductSortKey =
@@ -50,7 +51,7 @@ export default async function ProductsAdminPage({
     typeof sp.dir === 'string' && isSortDirection(sp.dir) ? sp.dir : DEFAULT_PRODUCT_DIR
 
   const [data, categories] = await Promise.all([
-    listProductsAdmin({ search, categoryId, active, page, sort, dir }),
+    listProductsAdmin({ search, categoryId, active, outOfStock: stock === 'sin', page, sort, dir }),
     listCategoriesFlat(),
   ])
 
@@ -64,6 +65,7 @@ export default async function ProductsAdminPage({
     if (search) params.set('q', search)
     if (categoryId) params.set('cat', categoryId)
     if (estado) params.set('estado', estado)
+    if (stock) params.set('stock', stock)
     const nextSort = overrides.sort ?? sort
     const nextDir = overrides.dir ?? dir
     if (nextSort !== DEFAULT_PRODUCT_SORT || nextDir !== DEFAULT_PRODUCT_DIR) {
@@ -105,6 +107,7 @@ export default async function ProductsAdminPage({
         initialSearch={search}
         initialCategory={categoryId ?? ''}
         initialEstado={estado}
+        initialStock={stock}
         categories={categoryOptions}
         sortParams={
           sort === DEFAULT_PRODUCT_SORT && dir === DEFAULT_PRODUCT_DIR ? null : { sort, dir }

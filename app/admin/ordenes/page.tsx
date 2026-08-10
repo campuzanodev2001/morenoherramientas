@@ -18,6 +18,19 @@ const VALID_STATUS: OrderStatus[] = [
   'refunded',
 ]
 
+/**
+ * Filtros que agrupan varios estados. Los usa el dashboard para que cada
+ * tarjeta caiga en el listado que muestra exactamente lo que contó.
+ */
+const STATUS_GROUPS: Record<string, OrderStatus[]> = {
+  nuevas: ['confirmed', 'processing'],
+}
+
+function resolveStatus(raw: string): OrderStatus | OrderStatus[] | undefined {
+  if (STATUS_GROUPS[raw]) return STATUS_GROUPS[raw]
+  return VALID_STATUS.includes(raw as OrderStatus) ? (raw as OrderStatus) : undefined
+}
+
 function dateLabel(d: Date): string {
   return new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
@@ -29,8 +42,10 @@ export default async function OrdersAdminPage({
 }) {
   const sp = await searchParams
   const search = typeof sp.q === 'string' ? sp.q : ''
-  const estadoRaw = typeof sp.estado === 'string' ? sp.estado : ''
-  const status = VALID_STATUS.includes(estadoRaw as OrderStatus) ? (estadoRaw as OrderStatus) : undefined
+  const estadoParam = typeof sp.estado === 'string' ? sp.estado : ''
+  // Un estado desconocido se descarta: no se propaga a los links ni al filtro.
+  const estadoRaw = resolveStatus(estadoParam) ? estadoParam : ''
+  const status = resolveStatus(estadoRaw)
   const from = typeof sp.desde === 'string' ? sp.desde : ''
   const to = typeof sp.hasta === 'string' ? sp.hasta : ''
   const page = Number(sp.page) > 0 ? Number(sp.page) : 1

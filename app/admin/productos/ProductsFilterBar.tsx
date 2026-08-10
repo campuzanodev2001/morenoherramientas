@@ -9,12 +9,14 @@ export default function ProductsFilterBar({
   initialSearch,
   initialCategory,
   initialEstado,
+  initialStock,
   categories,
   sortParams,
 }: {
   initialSearch: string
   initialCategory: string
   initialEstado: string
+  initialStock: string
   categories: Option[]
   /** Orden actual, para no perderlo al cambiar un filtro. Vacío si es el default. */
   sortParams: { sort: string; dir: string } | null
@@ -22,14 +24,16 @@ export default function ProductsFilterBar({
   const router = useRouter()
   const [search, setSearch] = useState(initialSearch)
 
-  function apply(next: { q?: string; cat?: string; estado?: string }) {
+  function apply(next: { q?: string; cat?: string; estado?: string; stock?: string }) {
     const params = new URLSearchParams()
     const q = next.q ?? search
     const cat = next.cat ?? initialCategory
     const estado = next.estado ?? initialEstado
+    const stock = next.stock ?? initialStock
     if (q) params.set('q', q)
     if (cat) params.set('cat', cat)
     if (estado) params.set('estado', estado)
+    if (stock) params.set('stock', stock)
     if (sortParams) {
       params.set('sort', sortParams.sort)
       params.set('dir', sortParams.dir)
@@ -74,6 +78,15 @@ export default function ProductsFilterBar({
         <option value="">Todos</option>
         <option value="activos">Activos</option>
         <option value="inactivos">Inactivos</option>
+      </select>
+      <select
+        value={initialStock}
+        onChange={(e) => apply({ stock: e.target.value })}
+        className="border-2 border-outline px-3 py-2.5 text-sm font-medium text-on-surface bg-surface focus:outline-none focus:border-primary-container md:w-40"
+        aria-label="Stock"
+      >
+        <option value="">Todo el stock</option>
+        <option value="sin">Sin stock</option>
       </select>
     </div>
   )

@@ -5,6 +5,7 @@ import { useState } from 'react'
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos los estados' },
+  { value: 'nuevas', label: 'Nuevas (confirmadas + en preparación)' },
   { value: 'pending', label: 'Pendiente' },
   { value: 'confirmed', label: 'Confirmada' },
   { value: 'processing', label: 'En preparación' },

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getAdminDashboardStats } from '@/lib/db/queries/admin-stats'
+import { todayInArgentina } from '@/lib/utils/date-ar'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 60
@@ -10,6 +11,8 @@ function formatPrice(cents: number): string {
 
 export default async function AdminDashboardPage() {
   const stats = await getAdminDashboardStats()
+  // Mismo "hoy" que usa el cálculo de ingresos, para que el link muestre lo contado.
+  const today = todayInArgentina()
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6">
@@ -19,16 +22,40 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Órdenes nuevas" value={String(stats.newOrders)} icon="receipt_long" color="bg-primary-container" />
-        <StatCard label="Ingresos del día" value={formatPrice(stats.incomeToday)} icon="payments" color="bg-green-600" />
-        <StatCard label="A procesar" value={String(stats.toProcess)} icon="pending_actions" color="bg-yellow-500" />
-        <StatCard label="Sin stock" value={String(stats.products.outOfStock)} icon="cancel" color="bg-accent-red" />
+        <StatCard
+          href="/admin/ordenes?estado=nuevas"
+          label="Órdenes nuevas"
+          value={String(stats.newOrders)}
+          icon="receipt_long"
+          color="bg-primary-container"
+        />
+        <StatCard
+          href={`/admin/ordenes?desde=${today}&hasta=${today}`}
+          label="Ingresos del día"
+          value={formatPrice(stats.incomeToday)}
+          icon="payments"
+          color="bg-green-600"
+        />
+        <StatCard
+          href="/admin/ordenes?estado=confirmed"
+          label="A procesar"
+          value={String(stats.toProcess)}
+          icon="pending_actions"
+          color="bg-yellow-500"
+        />
+        <StatCard
+          href="/admin/productos?stock=sin"
+          label="Sin stock"
+          value={String(stats.products.outOfStock)}
+          icon="cancel"
+          color="bg-accent-red"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <InfoCard label="Productos totales" value={String(stats.products.total)} icon="inventory_2" />
-        <InfoCard label="Productos activos" value={String(stats.products.active)} icon="check_circle" />
-        <InfoCard label="Productos inactivos" value={String(stats.products.inactive)} icon="visibility_off" />
+        <InfoCard href="/admin/productos" label="Productos totales" value={String(stats.products.total)} icon="inventory_2" />
+        <InfoCard href="/admin/productos?estado=activos" label="Productos activos" value={String(stats.products.active)} icon="check_circle" />
+        <InfoCard href="/admin/productos?estado=inactivos" label="Productos inactivos" value={String(stats.products.inactive)} icon="visibility_off" />
       </div>
 
       <div className="flex flex-col gap-3">
@@ -46,27 +73,45 @@ export default async function AdminDashboardPage() {
   )
 }
 
-function StatCard({ label, value, icon, color }: { label: string; value: string; icon: string; color: string }) {
+function StatCard({
+  href,
+  label,
+  value,
+  icon,
+  color,
+}: {
+  href: string
+  label: string
+  value: string
+  icon: string
+  color: string
+}) {
   return (
-    <div className={`${color} p-4 flex flex-col gap-2`}>
+    <Link
+      href={href}
+      className={`${color} p-4 flex flex-col gap-2 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface transition-opacity duration-150`}
+    >
       <span className="material-symbols-outlined text-on-primary text-2xl">{icon}</span>
       <div>
         <p className="text-2xl font-black text-on-primary leading-none">{value}</p>
         <p className="text-on-primary/70 text-xs font-bold uppercase mt-1">{label}</p>
       </div>
-    </div>
+    </Link>
   )
 }
 
-function InfoCard({ label, value, icon }: { label: string; value: string; icon: string }) {
+function InfoCard({ href, label, value, icon }: { href: string; label: string; value: string; icon: string }) {
   return (
-    <div className="bg-surface-container-lowest border border-surface-container p-4 flex items-center gap-3">
+    <Link
+      href={href}
+      className="bg-surface-container-lowest border border-surface-container p-4 flex items-center gap-3 hover:border-primary-container hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-container transition-colors duration-150"
+    >
       <span className="material-symbols-outlined text-primary-container text-2xl">{icon}</span>
       <div>
         <p className="text-sm font-black text-on-surface">{value}</p>
         <p className="text-xs font-medium text-on-surface-variant">{label}</p>
       </div>
-    </div>
+    </Link>
   )
 }
 
