@@ -45,6 +45,9 @@ yarn-error.log*
 # datos del proveedor — contienen precios de costo y márgenes, nunca al repo
 /data/
 
+# grafo de conocimiento generado por /graphify — output regenerable, no código
+/graphify-out/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
