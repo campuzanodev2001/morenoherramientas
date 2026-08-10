@@ -15,6 +15,47 @@ export type BannerSlide = {
 
 const ROTATE_MS = 6000
 
+/**
+ * Flecha de navegación, superpuesta sobre el banner. Va dentro del recuadro
+ * para que acompañe el ancho real de la imagen, que cambia según la pantalla.
+ */
+function ArrowButton({
+  side,
+  label,
+  onClick,
+}: {
+  side: 'left' | 'right'
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className={`absolute top-1/2 -translate-y-1/2 ${side === 'left' ? 'left-2' : 'right-2'}
+        grid place-items-center w-9 h-9 sm:w-11 sm:h-11
+        bg-charcoal/45 text-white hover:bg-charcoal/75
+        focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+        focus-visible:outline-accent-red transition-colors`}
+    >
+      {/* Chevron dibujado a mano: el proyecto no usa librería de íconos. */}
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className="w-5 h-5"
+      >
+        <polyline points={side === 'left' ? '15 5 8 12 15 19' : '9 5 16 12 9 19'} />
+      </svg>
+    </button>
+  )
+}
+
 /** Medidas que se le piden al optimizador. El tamaño real lo manda el recuadro. */
 const IMAGE_SIZE: Record<BannerDevice, { width: number; height: number }> = {
   mobile: { width: 900, height: 1200 },
@@ -41,6 +82,9 @@ export default function BannerCarousel({
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const count = banners.length
+
+  // Da la vuelta en los extremos: del último va al primero y al revés.
+  const go = (delta: number) => setIndex((i) => (i + delta + count) % count)
 
   useEffect(() => {
     if (count <= 1 || paused) return
@@ -103,6 +147,13 @@ export default function BannerCarousel({
               </div>
             )
           })}
+
+        {count > 1 && (
+          <>
+            <ArrowButton side="left" label="Banner anterior" onClick={() => go(-1)} />
+            <ArrowButton side="right" label="Banner siguiente" onClick={() => go(1)} />
+          </>
+        )}
         </div>
       </div>
 
