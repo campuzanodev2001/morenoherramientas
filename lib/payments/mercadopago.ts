@@ -5,19 +5,6 @@ import { logWarn } from '@/lib/logger'
 
 const MP_API = 'https://api.mercadopago.com'
 
-/** Item de preferencia. `unitPrice` en PESOS (decimal), no en centavos. */
-export type PreferenceItem = {
-  title: string
-  quantity: number
-  unitPrice: number
-}
-
-export type CreatePreferenceInput = {
-  orderId: string
-  items: PreferenceItem[]
-  payerEmail: string
-}
-
 export type MpPayment = {
   id: number
   status: string // approved | rejected | pending | in_process | ...
@@ -32,48 +19,78 @@ function authHeaders(): HeadersInit {
   }
 }
 
-/**
- * Crea una preferencia de Checkout Bricks. Los precios ya vienen recalculados
- * desde la DB por el servidor (nunca del cliente).
- */
-export async function createPreference(input: CreatePreferenceInput): Promise<{ id: string }> {
-  const appUrl = env.NEXT_PUBLIC_APP_URL
-  const backUrl = `${appUrl}/orden/${input.orderId}`
+export type CreatePaymentInput = {
+  orderId: string
+  /** Monto en centavos: se convierte a pesos acá, una sola vez. */
+  amountCents: number
+  description: string
+  token?: string | undefined
+  paymentMethodId: string
+  issuerId?: string | undefined
+  installments: number
+  payerEmail: string
+  payerIdentification?: { type: string; number: string } | undefined
+}
 
-  const res = await fetch(`${MP_API}/checkout/preferences`, {
+/**
+ * Crea el pago del Payment Brick (POST /v1/payments) con el token de tarjeta.
+ *
+ * El monto sale de la orden en la DB, nunca del cliente. La clave de
+ * idempotencia es el id de la orden: si el comprador hace doble click o la red
+ * reintenta, MP devuelve el mismo pago en vez de cobrar dos veces.
+ */
+export async function createPayment(input: CreatePaymentInput): Promise<MpPayment> {
+  const res = await fetch(`${MP_API}/v1/payments`, {
     method: 'POST',
-    headers: authHeaders(),
+    headers: { ...authHeaders(), 'X-Idempotency-Key': input.orderId },
     body: JSON.stringify({
-      items: input.items.map((it) => ({
-        title: it.title,
-        quantity: it.quantity,
-        unit_price: it.unitPrice,
-        currency_id: 'ARS',
-      })),
-      payer: { email: input.payerEmail },
-      back_urls: { success: backUrl, failure: backUrl, pending: backUrl },
-      notification_url: `${appUrl}/api/webhooks/mercadopago`,
+      transaction_amount: input.amountCents / 100,
+      description: input.description,
+      ...(input.token ? { token: input.token } : {}),
+      payment_method_id: input.paymentMethodId,
+      ...(input.issuerId ? { issuer_id: input.issuerId } : {}),
+      installments: input.installments,
       external_reference: input.orderId,
-      expires: true,
-      expiration_date_to: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+      notification_url: `${env.NEXT_PUBLIC_APP_URL}/api/webhooks/mercadopago`,
       statement_descriptor: 'FERRETERIA',
+      payer: {
+        email: input.payerEmail,
+        ...(input.payerIdentification ? { identification: input.payerIdentification } : {}),
+      },
     }),
-    signal: AbortSignal.timeout(10_000),
+    signal: AbortSignal.timeout(15_000),
   })
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '')
-    logWarn('payments:mp', 'createPreference falló', { status: res.status })
+  const data = (await res.json().catch(() => null)) as {
+    id?: number
+    status?: string
+    status_detail?: string
+    external_reference?: string | null
+    message?: string
+  } | null
+
+  if (!res.ok || !data?.id || !data.status) {
+    // El mensaje de MP va al log del servidor (nunca al cliente): sin él,
+    // diagnosticar un rechazo obliga a reproducir la llamada a mano.
+    console.error('[payments:mp] createPayment falló', {
+      httpStatus: res.status,
+      mpMessage: data?.message,
+      mpCause: JSON.stringify((data as { cause?: unknown } | null)?.cause ?? null).slice(0, 300),
+    })
+    logWarn('payments:mp', 'createPayment falló', { status: res.status })
     throw new PaymentError(
-      'No pudimos iniciar el pago. Intentá de nuevo.',
-      'MP_PREFERENCE_FAILED',
-      detail.slice(0, 200),
+      'No pudimos procesar el pago. Intentá de nuevo.',
+      'MP_PAYMENT_FAILED',
+      (data?.message ?? '').slice(0, 200),
     )
   }
 
-  const data = (await res.json()) as { id?: string }
-  if (!data.id) throw new PaymentError('Respuesta inválida de MercadoPago', 'MP_PREFERENCE_FAILED', '')
-  return { id: data.id }
+  return {
+    id: data.id,
+    status: data.status,
+    statusDetail: data.status_detail ?? '',
+    externalReference: data.external_reference ?? null,
+  }
 }
 
 /** Consulta el estado real de un pago en MP (no confiar en el webhook). */

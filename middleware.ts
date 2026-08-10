@@ -23,15 +23,25 @@ function securityHeaders(response: NextResponse): NextResponse {
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.mercadopago.com https://*.mercadopago.com https://*.mercadolibre.com",
+      // mlstatic.com es el CDN desde el que el SDK descarga el bundle de cada
+      // Brick (op-cho-bricks). Sin él, `create()` resuelve sin error pero el
+      // contenedor queda vacío: el Brick no llega a dibujarse nunca.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.mercadopago.com https://*.mercadopago.com https://*.mercadolibre.com https://*.mlstatic.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: blob: https://res.cloudinary.com https://*.mercadopago.com https://lh3.googleusercontent.com",
+      // mlstatic.com sirve los logos de tarjetas y medios de pago del Brick.
+      // Los dominios de MercadoLibre van acá porque el pixel de fingerprint se
+      // carga como imagen (mercadolivre.com, con "v", es el de Brasil).
+      "img-src 'self' data: blob: https://res.cloudinary.com https://*.mercadopago.com https://*.mlstatic.com https://*.mercadolibre.com https://*.mercadolivre.com https://lh3.googleusercontent.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       // api.cloudinary.com es el host de subida y NO es el mismo que
       // res.cloudinary.com (el de entrega, que va en img-src). Sin él, el
       // upload firmado del admin lo bloquea el navegador.
-      "connect-src 'self' https://api.mercadopago.com https://*.mercadopago.com https://api.cloudinary.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io",
-      "frame-src 'self' https://*.mercadopago.com https://*.mercadolibre.com",
+      // *.mercadolibre.com es obligatorio: el Payment Brick hace un fetch de
+      // fingerprint de dispositivo contra mercadolibre.com antes de dibujarse.
+      // Sin él el Brick falla con "Bricks component initialization failed" y no
+      // renderiza nada — falla en silencio, sin disparar onError.
+      "connect-src 'self' https://api.mercadopago.com https://*.mercadopago.com https://*.mercadolibre.com https://*.mercadolivre.com https://*.mlstatic.com https://api.cloudinary.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io",
+      "frame-src 'self' https://*.mercadopago.com https://*.mercadolibre.com https://*.mercadolivre.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

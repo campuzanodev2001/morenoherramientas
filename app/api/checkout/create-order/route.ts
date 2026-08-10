@@ -4,22 +4,24 @@ import { handleApiError } from '@/lib/errors/handlers'
 import { parseOrThrow } from '@/lib/errors/validation'
 import { ValidationError } from '@/lib/errors'
 import { getServerSession } from '@/lib/auth/helpers'
-import { createPreferenceSchema } from '@/lib/validations/checkout'
+import { createOrderSchema } from '@/lib/validations/checkout'
 import { priceCart } from '@/lib/checkout/pricing'
 import { getValidQuote, markQuoteSelected } from '@/lib/db/queries/shipping'
-import { createOrder, setOrderPreferenceId } from '@/lib/db/queries/orders'
-import { createPreference } from '@/lib/payments/mercadopago'
+import { createOrder } from '@/lib/db/queries/orders'
 import type { ShippingAddress } from '@/lib/db/types'
 
 /**
- * POST /api/checkout/create-preference — flujo de 12 pasos (04-cart-checkout.md).
- * Si algo falla antes de crear la orden, la orden NO se crea.
+ * POST /api/checkout/create-order — crea la orden en `pending` antes de pagar.
+ *
+ * El cobro lo hace después `process-payment` con el token del Payment Brick.
+ * Acá no se habla con MercadoPago: la orden es sólo nuestra hasta ese momento.
+ * Si algo falla, la orden NO se crea.
  */
 async function handler(request: Request): Promise<Response> {
   try {
     // 2. Validación Zod
     const body: unknown = await request.json()
-    const input = parseOrThrow(createPreferenceSchema, body)
+    const input = parseOrThrow(createOrderSchema, body)
 
     // 3-6. Recalcular precios desde la DB + verificar stock (nunca del cliente)
     const priced = await priceCart(input.items, { requireStock: true })
@@ -79,25 +81,8 @@ async function handler(request: Request): Promise<Response> {
 
     await markQuoteSelected(quote.id, order.id)
 
-    // 10. Crear preferencia en MP (precios en pesos)
-    const preference = await createPreference({
-      orderId: order.id,
-      payerEmail: input.buyer.email,
-      items: [
-        ...priced.lines.map((l) => ({
-          title: l.productName,
-          quantity: l.quantity,
-          unitPrice: l.unitPrice / 100,
-        })),
-        { title: `Envío (${quote.service})`, quantity: 1, unitPrice: shippingCost / 100 },
-      ],
-    })
-
-    // 11. Guardar mpPreferenceId
-    await setOrderPreferenceId(order.id, preference.id)
-
-    // 12. Respuesta controlada
-    return NextResponse.json({ preferenceId: preference.id, orderId: order.id, total })
+    // 10. Respuesta controlada
+    return NextResponse.json({ orderId: order.id, total })
   } catch (error) {
     return handleApiError(error)
   }

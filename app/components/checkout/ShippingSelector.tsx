@@ -6,7 +6,7 @@ import type { CartLineInput } from '@/lib/validations/checkout'
 
 export type ShippingOptionView = {
   id: string
-  carrier: 'andreani' | 'correo-argentino'
+  carrier: 'andreani' | 'correo-argentino' | 'a-coordinar'
   service: string
   price: number
   estimatedDays: number
@@ -15,27 +15,32 @@ export type ShippingOptionView = {
 type Props = {
   postalCode: string
   items: CartLineInput[]
-  selectedId: string | null
+  selected: ShippingOptionView | null
   onSelect: (option: ShippingOptionView | null) => void
 }
 
 const CARRIER_LABEL: Record<ShippingOptionView['carrier'], string> = {
   andreani: 'Andreani',
   'correo-argentino': 'Correo Argentino',
+  'a-coordinar': 'Moreno Herramientas',
 }
 
 const isValidCp = (cp: string) => /^\d{4}$/.test(cp)
 
-export default function ShippingSelector({ postalCode, items, selectedId, onSelect }: Props) {
+export default function ShippingSelector({ postalCode, items, selected, onSelect }: Props) {
+  const selectedId = selected?.id ?? null
   const [options, setOptions] = useState<ShippingOptionView[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
 
-  // onSelect en un ref para no convertirlo en dependencia del efecto de fetch.
+  // onSelect y la opción elegida en refs para no convertirlos en dependencias
+  // del efecto de fetch (la selección cambia justamente por el efecto).
   const onSelectRef = useRef(onSelect)
+  const previousRef = useRef(selected)
   useEffect(() => {
     onSelectRef.current = onSelect
+    previousRef.current = selected
   })
 
   const itemsKey = JSON.stringify(items)
@@ -72,7 +77,13 @@ export default function ShippingSelector({ postalCode, items, selectedId, onSele
         const data = (await res.json()) as { options: ShippingOptionView[] }
         if (cancelled) return
         setOptions(data.options)
-        select(data.options[0] ?? null)
+        // Cada cotización se persiste con un id nuevo, así que la selección
+        // previa se recupera por carrier + servicio, no por id.
+        const prev = previousRef.current
+        const same = prev
+          ? data.options.find((o) => o.carrier === prev.carrier && o.service === prev.service)
+          : undefined
+        select(same ?? data.options[0] ?? null)
       } catch {
         if (cancelled) return
         setError('No pudimos cotizar el envío. Probá de nuevo.')
@@ -157,11 +168,13 @@ export default function ShippingSelector({ postalCode, items, selectedId, onSele
               {CARRIER_LABEL[option.carrier]} · {option.service}
             </span>
             <span className="text-xs text-on-surface-variant font-medium">
-              Llega en {option.estimatedDays} días hábiles aprox.
+              {option.estimatedDays > 0
+                ? `Llega en ${option.estimatedDays} días hábiles aprox.`
+                : 'Coordinamos la entrega con vos después de la compra.'}
             </span>
           </div>
           <span className="text-sm font-black uppercase text-on-surface">
-            {formatPrice(option.price)}
+            {option.price > 0 ? formatPrice(option.price) : 'Gratis'}
           </span>
         </label>
       ))}

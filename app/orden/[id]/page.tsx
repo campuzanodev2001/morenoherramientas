@@ -74,7 +74,7 @@ export default async function OrderResultPage({ params }: { params: Promise<{ id
 
   return (
     <>
-      <OrderCleanup confirmed={order.status === 'confirmed'} />
+      <OrderCleanup settled={order.status !== 'cancelled'} />
       <StoreHeader />
 
       <main className="mt-16 max-w-[760px] mx-auto w-full px-4 md:px-8 py-10 flex flex-col gap-8">

@@ -1,6 +1,6 @@
 /** Una opción de envío cotizada por un carrier. */
 export type ShippingQuoteResult = {
-  carrier: 'andreani' | 'correo-argentino'
+  carrier: 'andreani' | 'correo-argentino' | 'a-coordinar'
   service: string
   price: number // centavos
   estimatedDays: number

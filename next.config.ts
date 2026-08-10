@@ -3,6 +3,11 @@ import { withAxiom } from "next-axiom";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  // Next bloquea el acceso a recursos de dev desde hosts que no son localhost.
+  // El túnel de ngrok (webhook de MercadoPago en local) necesita estar acá.
+  // Solo aplica a `next dev`; en producción se ignora.
+  allowedDevOrigins: ['*.ngrok-free.dev', '*.ngrok-free.app', '*.ngrok.io'],
+
   // /admin/banners y /admin/hero se fusionaron en /admin/home. Se redirigen
   // para no dejar en 404 un favorito viejo del panel.
   async redirects() {

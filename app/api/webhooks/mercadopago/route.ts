@@ -8,7 +8,11 @@ import {
   isPaymentProcessed,
   markPaymentProcessed,
 } from '@/lib/db/queries/payment-events'
-import { getOrderWithItemsById, updateOrderStatus } from '@/lib/db/queries/orders'
+import {
+  getOrderWithItemsById,
+  updateOrderStatus,
+  confirmPendingOrder,
+} from '@/lib/db/queries/orders'
 import { decrementStock } from '@/lib/db/queries/products'
 import { clearCart } from '@/lib/db/queries/cart'
 import { logError, logInfo } from '@/lib/logger'
@@ -83,19 +87,35 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     if (payment.status === 'approved') {
-      await db.transaction(async (tx) => {
-        await updateOrderStatus(
+      // El stock se descuenta SOLO si esta llamada confirmó la orden. La
+      // idempotencia por paymentId no alcanza: dos pagos aprobados distintos
+      // sobre la misma orden (reintento del comprador, pago duplicado en MP)
+      // descontarían stock dos veces.
+      const confirmed = await db.transaction(async (tx) => {
+        const updated = await confirmPendingOrder(
           orderId,
-          'confirmed',
           { mpPaymentId: String(payment.id), mpStatus: payment.status, mpDetail: payment.statusDetail },
           tx,
         )
+        if (!updated) return false
         for (const item of order.items) {
           if (item.productId) await decrementStock(item.productId, item.quantity, tx)
         }
         if (order.userId) await clearCart(order.userId)
+        return true
       })
+
       await markPaymentProcessed(dataId, orderId, payment.status)
+
+      if (!confirmed) {
+        logInfo('webhook:mp', 'Orden ya no estaba pendiente, sin descontar stock', {
+          dataId,
+          orderId,
+          status: order.status,
+        })
+        return ok()
+      }
+
       revalidatePath('/')
       // Mail fire-and-forget, FUERA de la transacción.
       onPaymentApproved(orderId)

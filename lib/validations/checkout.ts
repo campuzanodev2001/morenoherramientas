@@ -38,15 +38,37 @@ export const quoteRequestSchema = z.object({
   items: z.array(cartLineSchema).min(1, 'El carrito está vacío'),
 })
 
-export const createPreferenceSchema = z.object({
+export const createOrderSchema = z.object({
   buyer: buyerSchema,
   shippingAddress: shippingAddressSchema,
   shippingQuoteId: z.string().uuid('Seleccioná un método de envío'),
   items: z.array(cartLineSchema).min(1, 'El carrito está vacío'),
 })
 
+/**
+ * Datos que el Payment Brick entrega en `onSubmit`. El monto NO viaja acá:
+ * se toma de la orden ya creada en la DB.
+ */
+export const processPaymentSchema = z.object({
+  orderId: z.string().uuid(),
+  token: z.string().trim().min(1).optional(),
+  paymentMethodId: z.string().trim().min(1, 'Elegí un medio de pago'),
+  issuerId: z.string().trim().optional(),
+  installments: z.number().int().positive().max(24).default(1),
+  payer: z.object({
+    email: z.email('Email inválido'),
+    identification: z
+      .object({
+        type: z.string().trim().min(1),
+        number: z.string().trim().min(1),
+      })
+      .optional(),
+  }),
+})
+
 export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>
 export type BuyerInput = z.infer<typeof buyerSchema>
 export type CartLineInput = z.infer<typeof cartLineSchema>
 export type QuoteRequestInput = z.infer<typeof quoteRequestSchema>
-export type CreatePreferenceInput = z.infer<typeof createPreferenceSchema>
+export type CreateOrderInput = z.infer<typeof createOrderSchema>
+export type ProcessPaymentInput = z.infer<typeof processPaymentSchema>

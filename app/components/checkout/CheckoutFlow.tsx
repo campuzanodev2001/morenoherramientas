@@ -13,7 +13,12 @@ import Field from './Field'
 import ShippingSelector from './ShippingSelector'
 import PaymentStep from './PaymentStep'
 
-const STEPS = ['Comprador', 'Dirección', 'Envío', 'Pago'] as const
+const STEPS = [
+  { label: 'Comprador', hint: 'Tus datos de contacto' },
+  { label: 'Dirección', hint: 'A dónde lo enviamos' },
+  { label: 'Envío', hint: 'Cómo y cuándo llega' },
+  { label: 'Pago', hint: 'Pagá con MercadoPago' },
+] as const
 
 type Errors = Record<string, string>
 
@@ -31,19 +36,22 @@ function validate(schema: z.ZodTypeAny, value: unknown): Errors {
 export default function CheckoutFlow() {
   const router = useRouter()
   const { data: session } = useSession()
-  const { items, totalPrice, ready, clearCart } = useCart()
+  const { items, totalPrice, ready } = useCart()
+
+  // Una vez creada la preferencia el Brick queda montado y no hay que sacar al
+  // comprador de la página, aunque el carrito cambie por debajo.
+  const [paying, setPaying] = useState(false)
 
   // Carrito vacío (ya hidratado) → volver al carrito.
   useEffect(() => {
-    if (ready && items.length === 0) router.replace('/carrito')
-  }, [ready, items.length, router])
+    if (ready && items.length === 0 && !paying) router.replace('/carrito')
+  }, [ready, items.length, paying, router])
 
   const prefill = useMemo(
     () => ({ name: session?.user?.name ?? '', email: session?.user?.email ?? '' }),
     [session?.user?.name, session?.user?.email],
   )
-  const { state, hydrated, setBuyer, setAddress, setShipping, setStep, clear } =
-    useCheckoutState(prefill)
+  const { state, hydrated, setBuyer, setAddress, setShipping, setStep } = useCheckoutState(prefill)
 
   const [errors, setErrors] = useState<Errors>({})
 
@@ -57,7 +65,7 @@ export default function CheckoutFlow() {
     return <div className="h-64 animate-pulse bg-surface-container" aria-busy="true" />
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !paying) {
     return (
       <div className="flex flex-col items-center justify-center gap-6 py-20 text-center">
         <p className="text-xl font-black uppercase text-on-surface-variant">
@@ -75,6 +83,16 @@ export default function CheckoutFlow() {
 
   const shippingCost = state.shipping?.price ?? 0
   const total = totalPrice + shippingCost
+
+  // Un paso es alcanzable si todos los anteriores están completos. Los datos
+  // ya cargados nunca se pierden: viven en el estado persistido del checkout.
+  const buyerOk = buyerSchema.safeParse(state.buyer).success
+  const addressOk = shippingAddressSchema.safeParse(state.address).success
+  const reachable = (n: number) =>
+    n === 1 ||
+    (n === 2 && buyerOk) ||
+    (n === 3 && buyerOk && addressOk) ||
+    (n === 4 && buyerOk && addressOk && state.shipping !== null)
 
   function goToStep(target: number) {
     setErrors({})
@@ -102,39 +120,49 @@ export default function CheckoutFlow() {
     <div className="grid md:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="flex flex-col gap-6">
         {/* Indicador de pasos */}
-        <ol className="flex items-center gap-2">
-          {STEPS.map((label, i) => {
+        <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {STEPS.map(({ label, hint }, i) => {
             const n = i + 1
             const active = state.step === n
-            const done = state.step > n
+            const enabled = reachable(n)
+            const done = enabled && !active && state.step > n
             return (
-              <li key={label} className="flex items-center gap-2">
+              <li key={label}>
                 <button
                   type="button"
-                  onClick={() => done && goToStep(n)}
-                  disabled={!done && !active}
-                  className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wide transition-colors ${
+                  onClick={() => goToStep(n)}
+                  disabled={!enabled}
+                  aria-current={active ? 'step' : undefined}
+                  className={`w-full h-full flex flex-col gap-1 items-start text-left border-t-4 pt-2 transition-colors ${
                     active
-                      ? 'text-accent-red'
-                      : done
-                        ? 'text-primary-container hover:underline'
-                        : 'text-on-surface-variant/50'
+                      ? 'border-accent-red'
+                      : enabled
+                        ? 'border-primary-container hover:bg-surface-container'
+                        : 'border-outline cursor-not-allowed'
                   }`}
                 >
                   <span
-                    className={`flex h-6 w-6 items-center justify-center border-2 ${
+                    className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wide ${
                       active
-                        ? 'border-accent-red'
-                        : done
-                          ? 'border-primary-container'
-                          : 'border-outline'
+                        ? 'text-accent-red'
+                        : enabled
+                          ? 'text-primary-container'
+                          : 'text-on-surface-variant/50'
                     }`}
                   >
-                    {n}
+                    <span className="material-symbols-outlined text-base leading-none">
+                      {done ? 'check_circle' : `counter_${n}`}
+                    </span>
+                    {label}
                   </span>
-                  <span className="hidden sm:inline">{label}</span>
+                  <span
+                    className={`text-[11px] font-medium leading-tight ${
+                      enabled ? 'text-on-surface-variant' : 'text-on-surface-variant/50'
+                    }`}
+                  >
+                    {hint}
+                  </span>
                 </button>
-                {n < STEPS.length && <span className="text-outline">→</span>}
               </li>
             )
           })}
@@ -277,7 +305,7 @@ export default function CheckoutFlow() {
             <ShippingSelector
               postalCode={state.address.postalCode}
               items={cartLines}
-              selectedId={state.shipping?.id ?? null}
+              selected={state.shipping}
               onSelect={setShipping}
             />
             <div className="flex gap-3">
@@ -309,10 +337,7 @@ export default function CheckoutFlow() {
             items={cartLines}
             total={total}
             onBack={() => goToStep(3)}
-            onPaid={() => {
-              clear()
-              clearCart()
-            }}
+            onPreferenceCreated={() => setPaying(true)}
           />
         )}
       </div>
@@ -342,7 +367,7 @@ export default function CheckoutFlow() {
           <div className="flex justify-between text-sm">
             <span className="text-on-surface-variant font-medium">Envío</span>
             <span className="font-black text-on-surface">
-              {state.shipping ? formatPrice(shippingCost) : 'A calcular'}
+              {!state.shipping ? 'A calcular' : shippingCost > 0 ? formatPrice(shippingCost) : 'Gratis'}
             </span>
           </div>
         </div>

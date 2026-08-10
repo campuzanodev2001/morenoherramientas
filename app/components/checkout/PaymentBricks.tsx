@@ -4,16 +4,41 @@ import { useEffect, useRef, useState } from 'react'
 import { clientEnv } from '@/lib/env'
 import { getMpErrorMessage } from '@/lib/errors/mp-error-messages'
 
-/** Tipos mínimos del SDK de MercadoPago (no hay @types oficiales). */
+/**
+ * Tipos mínimos del SDK de MercadoPago (no hay @types oficiales).
+ * Sólo se declara lo que este componente usa del Payment Brick.
+ */
+type BrickFormData = {
+  token?: string
+  payment_method_id: string
+  issuer_id?: string
+  installments?: number
+  payer?: {
+    email?: string
+    identification?: { type?: string; number?: string }
+  }
+}
+
 type MpBricksController = {
   create: (
-    brick: string,
+    brick: 'payment',
     container: string,
     settings: {
-      initialization: { preferenceId: string }
-      callbacks: { onError?: (error: { message?: string; cause?: string }) => void; onReady?: () => void }
+      initialization: {
+        amount: number
+        payer?: { email?: string }
+      }
+      customization: {
+        visual?: { style?: { theme?: string } }
+        paymentMethods: Record<string, unknown>
+      }
+      callbacks: {
+        onReady?: () => void
+        onError?: (error: { message?: string; cause?: string }) => void
+        onSubmit: (arg: { formData: BrickFormData }) => Promise<void>
+      }
     },
-  ) => Promise<unknown>
+  ) => Promise<{ unmount?: () => void }>
 }
 type MpInstance = { bricks: () => MpBricksController }
 type MpConstructor = new (publicKey: string, options?: { locale?: string }) => MpInstance
@@ -49,36 +74,127 @@ function loadSdk(): Promise<MpConstructor> {
   })
 }
 
-const CONTAINER_ID = 'wallet-brick-container'
+const CONTAINER_ID = 'payment-brick-container'
 
-export default function PaymentBricks({ preferenceId }: { preferenceId: string }) {
+export type PaymentBricksProps = {
+  /** Id de la orden ya creada, contra la que se imputa el pago. */
+  orderId: string
+  /** Total en centavos. El Brick lo necesita en pesos. */
+  totalCents: number
+  payerEmail: string
+  /** Se dispara cuando MP resolvió el pago, con el estado que devolvió. */
+  onResolved: (status: string) => void
+}
+
+export default function PaymentBricks({
+  orderId,
+  totalCents,
+  payerEmail,
+  onResolved,
+}: PaymentBricksProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const mounted = useRef(false)
+
+  // onResolved en un ref: el Brick se monta una sola vez y no debe re-crearse
+  // si el padre re-renderiza con otro closure.
+  const onResolvedRef = useRef(onResolved)
+  useEffect(() => {
+    onResolvedRef.current = onResolved
+  })
 
   useEffect(() => {
-    if (mounted.current) return
-    mounted.current = true
-    let cancelled = false
+    // Sin guard de "ya montado": con StrictMode el efecto corre, se limpia y
+    // vuelve a correr. Un guard hacía que la segunda pasada saliera temprano
+    // mientras la primera ya se había cancelado, así que create() no se
+    // llamaba nunca y el contenedor quedaba vacío para siempre.
+    // El ciclo correcto es el que pide MP: desmontar al salir, crear una
+    // instancia nueva al entrar.
+    let disposed = false
+    let controller: { unmount?: () => void } | null = null
 
     async function render() {
       try {
         const Mp = await loadSdk()
-        if (cancelled) return
+        if (disposed) return
         const mp = new Mp(clientEnv.NEXT_PUBLIC_MP_PUBLIC_KEY, { locale: 'es-AR' })
-        await mp.bricks().create('wallet', CONTAINER_ID, {
-          initialization: { preferenceId },
+        const created = await mp.bricks().create('payment', CONTAINER_ID, {
+          initialization: {
+            amount: totalCents / 100,
+            payer: { email: payerEmail },
+          },
+          customization: {
+            paymentMethods: {
+              creditCard: 'all',
+              debitCard: 'all',
+              ticket: 'all',
+            },
+          },
           callbacks: {
             onReady: () => {
-              if (!cancelled) setLoading(false)
+              if (!disposed) setLoading(false)
             },
             onError: (e) => {
-              if (!cancelled) setError(getMpErrorMessage(e.cause))
+              if (!disposed) setError(getMpErrorMessage(e.cause))
+            },
+            // El Brick espera una promesa: mientras no resuelva, mantiene el
+            // botón en estado de carga. Si rechaza, muestra el error y deja
+            // reintentar sin perder los datos cargados.
+            onSubmit: async ({ formData }) => {
+              const res = await fetch('/api/checkout/process-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId,
+                  token: formData.token,
+                  paymentMethodId: formData.payment_method_id,
+                  issuerId: formData.issuer_id,
+                  installments: formData.installments ?? 1,
+                  payer: {
+                    email: formData.payer?.email ?? payerEmail,
+                    ...(formData.payer?.identification?.type &&
+                    formData.payer.identification.number
+                      ? {
+                          identification: {
+                            type: formData.payer.identification.type,
+                            number: formData.payer.identification.number,
+                          },
+                        }
+                      : {}),
+                  },
+                }),
+              })
+
+              const data = (await res.json()) as
+                | { orderId: string; status: string; statusDetail: string }
+                | { error: { message: string } }
+
+              if (!res.ok || !('status' in data)) {
+                const message =
+                  'error' in data ? data.error.message : 'No pudimos procesar el pago.'
+                setError(message)
+                throw new Error(message)
+              }
+
+              if (data.status === 'rejected') {
+                const message = getMpErrorMessage(data.statusDetail)
+                setError(message)
+                throw new Error(message)
+              }
+
+              setError(null)
+              onResolvedRef.current(data.status)
             },
           },
         })
+        // Si el componente se fue mientras create() resolvía, desmontar el
+        // Brick recién creado en vez de dejarlo huérfano en el DOM.
+        if (disposed) {
+          created?.unmount?.()
+          return
+        }
+        controller = created
       } catch {
-        if (!cancelled) {
+        if (!disposed) {
           setError('No pudimos cargar los medios de pago. Recargá la página.')
           setLoading(false)
         }
@@ -86,9 +202,10 @@ export default function PaymentBricks({ preferenceId }: { preferenceId: string }
     }
     void render()
     return () => {
-      cancelled = true
+      disposed = true
+      controller?.unmount?.()
     }
-  }, [preferenceId])
+  }, [orderId, totalCents, payerEmail])
 
   return (
     <div className="flex flex-col gap-3">
@@ -98,7 +215,10 @@ export default function PaymentBricks({ preferenceId }: { preferenceId: string }
         </p>
       )}
       {loading && !error && (
-        <div className="h-14 w-full animate-pulse bg-surface-container border-2 border-outline" aria-busy="true" />
+        <div
+          className="h-64 w-full animate-pulse bg-surface-container border-2 border-outline"
+          aria-busy="true"
+        />
       )}
       <div id={CONTAINER_ID} />
     </div>

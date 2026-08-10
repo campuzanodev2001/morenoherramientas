@@ -138,9 +138,30 @@ export async function updateOrderStatus(
   return updated
 }
 
-/** Asocia el preferenceId de MP a la orden recién creada (sin cambiar estado). */
-export async function setOrderPreferenceId(orderId: string, preferenceId: string): Promise<void> {
-  await db.update(orders).set({ mpPreferenceId: preferenceId }).where(eq(orders.id, orderId))
+/**
+ * Confirma una orden SOLO si sigue en 'pending', en un único UPDATE atómico.
+ *
+ * Devuelve la orden si esta llamada fue la que hizo la transición, o `null` si
+ * ya estaba confirmada (o en cualquier otro estado). Quien reciba `null` no
+ * debe repetir los efectos asociados al pago —descontar stock, sobre todo—.
+ *
+ * `updateOrderStatus` no sirve para esto: `canTransition` acepta `from === to`,
+ * así que una segunda confirmación pasa sin error. Y un select-y-después-update
+ * tampoco alcanza, porque dos webhooks concurrentes leen 'pending' los dos. El
+ * filtro va en el WHERE para que lo resuelva la base.
+ */
+export async function confirmPendingOrder(
+  orderId: string,
+  extra: UpdateOrderExtra = {},
+  executor: DbOrTx = db,
+): Promise<Order | null> {
+  const [updated] = await executor
+    .update(orders)
+    .set({ status: 'confirmed', ...extra })
+    .where(and(eq(orders.id, orderId), eq(orders.status, 'pending')))
+    .returning()
+
+  return updated ?? null
 }
 
 export type OrderWithItems = Order & { items: OrderItem[] }
