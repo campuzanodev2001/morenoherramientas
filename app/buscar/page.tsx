@@ -1,11 +1,10 @@
 import Link from 'next/link'
-import HamburgerMenu from '@/app/components/HamburgerMenu'
 import SearchBar from '@/app/components/SearchBar'
-import CartHeader from '@/app/components/CartHeader'
 import ProductCard from '@/app/components/ProductCard'
 import { searchProducts } from '@/lib/db/queries/search'
 import { getCardsByIds } from '@/lib/db/queries/catalog'
 import { safe } from '@/lib/db/safe'
+import StoreHeader from '@/app/components/StoreHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,15 +19,7 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <header className="bg-surface-container-lowest fixed top-0 left-0 right-0 z-50 border-b-2 border-primary-container">
-        <div className="max-w-[1280px] mx-auto flex justify-between items-center px-4 md:px-16 h-16">
-          <HamburgerMenu />
-          <Link href="/" className="text-lg md:text-xl font-extrabold text-primary-container uppercase tracking-tighter">
-            Moreno Herramientas
-          </Link>
-          <CartHeader />
-        </div>
-      </header>
+      <StoreHeader />
 
       <main className="mt-3 pt-16 flex flex-col gap-6 max-w-[1280px] mx-auto w-full px-4 md:px-16 py-8 min-h-[calc(100dvh-4rem)]">
         <nav className="flex items-center gap-1.5 flex-wrap text-xs font-medium text-on-surface-variant">

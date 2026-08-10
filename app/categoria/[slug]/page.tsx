@@ -1,13 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import HamburgerMenu from '@/app/components/HamburgerMenu'
-import CartHeader from '@/app/components/CartHeader'
 import ProductCard from '@/app/components/ProductCard'
 import Pagination from '@/app/components/Pagination'
 import { getCategoryBySlug, getStoreCategories, type StoreCategory } from '@/lib/db/queries/categories'
 import { getCategoryCards } from '@/lib/db/queries/catalog'
 import { safe } from '@/lib/db/safe'
+import StoreHeader from '@/app/components/StoreHeader'
 
 export const revalidate = 300
 
@@ -57,15 +56,7 @@ export default async function CategoriaPage({
 
   return (
     <>
-      <header className="bg-surface-container-lowest fixed top-0 left-0 right-0 z-50 border-b-2 border-primary-container">
-        <div className="max-w-[1280px] mx-auto flex justify-between items-center px-4 md:px-16 h-16">
-          <HamburgerMenu />
-          <Link href="/" className="text-lg md:text-xl font-extrabold text-primary-container uppercase tracking-tighter">
-            Moreno Herramientas
-          </Link>
-          <CartHeader />
-        </div>
-      </header>
+      <StoreHeader />
 
       <main className="pt-16 max-w-[1280px] mx-auto w-full px-4 md:px-16 py-8 flex flex-col gap-6 min-h-[calc(100dvh-4rem)]">
         <nav className="flex items-center gap-1.5 flex-wrap text-xs font-medium text-on-surface-variant">

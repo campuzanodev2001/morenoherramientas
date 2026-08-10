@@ -1,8 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import HamburgerMenu from '@/app/components/HamburgerMenu'
-import CartHeader from '@/app/components/CartHeader'
 import ProductCard from '@/app/components/ProductCard'
 import ProductGallery from './ProductGallery'
 import AddToCartButton from './AddToCartButton'
@@ -13,6 +11,7 @@ import { safe } from '@/lib/db/safe'
 import { formatPrice } from '@/lib/catalog/format'
 import { clientEnv } from '@/lib/env'
 import type { CartProductRef } from '@/app/context/CartContext'
+import StoreHeader from '@/app/components/StoreHeader'
 
 export const revalidate = 300
 
@@ -109,15 +108,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <header className="bg-surface-container-lowest fixed top-0 left-0 right-0 z-50 border-b-2 border-primary-container">
-        <div className="max-w-[1280px] mx-auto flex justify-between items-center px-4 md:px-16 h-16">
-          <HamburgerMenu />
-          <Link href="/" className="text-lg md:text-xl font-extrabold text-primary-container uppercase tracking-tighter">
-            Moreno Herramientas
-          </Link>
-          <CartHeader />
-        </div>
-      </header>
+      <StoreHeader />
 
       <main className="pt-16 flex flex-col">
         <div className="border-b border-outline bg-surface-container-lowest">

@@ -1,8 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import HamburgerMenu from './components/HamburgerMenu'
 import SearchBar from './components/SearchBar'
-import CartHeader from './components/CartHeader'
 import { getHomeConfig } from '@/lib/db/queries/store-settings'
 import { getStoreCategories } from '@/lib/db/queries/categories'
 import { getCardsByIds, getFeaturedCards } from '@/lib/db/queries/catalog'
@@ -11,6 +9,7 @@ import BannerCarousel, { type BannerSlide } from './components/BannerCarousel'
 import { safe } from '@/lib/db/safe'
 import { formatPrice } from '@/lib/catalog/format'
 import { clientEnv } from '@/lib/env'
+import StoreHeader from './components/StoreHeader'
 
 export const revalidate = 300
 
@@ -77,15 +76,7 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }} />
-      <header className="bg-surface-container-lowest fixed top-0 left-0 right-0 z-50 border-b-2 border-primary-container">
-        <div className="max-w-[1280px] mx-auto flex justify-between items-center px-4 md:px-16 h-16">
-          <HamburgerMenu />
-          <Link href="/" className="text-lg md:text-xl font-extrabold text-primary-container uppercase tracking-tighter">
-            Moreno Herramientas
-          </Link>
-          <CartHeader />
-        </div>
-      </header>
+      <StoreHeader />
 
       <main className="flex flex-col gap-8 md:gap-12 pt-16">
         {/*
