@@ -47,6 +47,8 @@ export type AdminProductFilters = {
   search?: string | undefined
   categoryId?: string | undefined
   active?: boolean | undefined
+  /** true → solo productos con stock 0. */
+  outOfStock?: boolean | undefined
   page?: number | undefined
   limit?: number | undefined
   sort?: ProductSortKey | undefined
@@ -70,6 +72,7 @@ function buildConds(filters: AdminProductFilters) {
   }
   if (filters.categoryId) conds.push(eq(products.categoryId, filters.categoryId))
   if (typeof filters.active === 'boolean') conds.push(eq(products.active, filters.active))
+  if (filters.outOfStock) conds.push(eq(products.stock, 0))
   return conds
 }
 
@@ -165,4 +168,34 @@ export async function getAdminProductStats(): Promise<{
   const total = totalRow?.c ?? 0
   const active = activeRow?.c ?? 0
   return { total, active, inactive: total - active, outOfStock: outRow?.c ?? 0 }
+}
+
+export type ProductOption = { id: string; name: string; sku: string | null }
+
+const OPTION_COLUMNS = { id: products.id, name: products.name, sku: products.sku }
+
+/**
+ * Buscador de productos para armar secciones de la home. El catálogo tiene
+ * ~1700 productos: filtrar en el cliente sobre una página traída de antemano
+ * dejaba fuera casi todo, así que la búsqueda va contra la DB.
+ */
+export async function searchProductOptions(search: string, limit = 30): Promise<ProductOption[]> {
+  const conds = [isNull(products.deletedAt), eq(products.active, true)]
+  const q = search.trim()
+  if (q) {
+    const m = or(ilike(products.name, `%${q}%`), ilike(products.sku, `%${q}%`), ilike(products.brand, `%${q}%`))
+    if (m) conds.push(m)
+  }
+  return db
+    .select(OPTION_COLUMNS)
+    .from(products)
+    .where(and(...conds))
+    .orderBy(asc(products.name))
+    .limit(Math.min(Math.max(limit, 1), 50))
+}
+
+/** Nombres de los productos ya elegidos, para mostrarlos sin depender del buscador. */
+export async function getProductOptionsByIds(ids: string[]): Promise<ProductOption[]> {
+  if (ids.length === 0) return []
+  return db.select(OPTION_COLUMNS).from(products).where(inArray(products.id, ids))
 }

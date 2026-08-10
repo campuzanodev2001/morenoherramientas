@@ -32,7 +32,7 @@ const websiteLd = {
 export default async function Home() {
   const config = await safe(
     () => getHomeConfig(),
-    { hero: { title: 'Moreno Herramientas', ctaText: 'Buscar' }, sections: { featuredTitle: 'Destacados', featuredProductIds: [] } },
+    { hero: { title: 'Moreno Herramientas', ctaText: 'Buscar' }, sections: [] },
   )
   const activeBanners = await safe(() => getActiveBannersByDevice(), { mobile: [], desktop: [] })
   const toSlides = (rows: { id: string; title: string; imageUrl: string; linkUrl: string | null }[]): BannerSlide[] =>
@@ -52,10 +52,27 @@ export default async function Home() {
 
   const allCategories = await safe(() => getStoreCategories(), [])
   const rootCategories = allCategories.slice(0, 6)
-  const featured =
-    config.sections.featuredProductIds.length > 0
-      ? await safe(() => getCardsByIds(config.sections.featuredProductIds), [])
-      : await safe(() => getFeaturedCards(4), [])
+  // Cada sección del admin es una fila de productos elegidos a mano. Sin
+  // ninguna sección cargada la home cae en los últimos productos publicados.
+  const visibleSections = config.sections.filter((s) => s.active && s.productIds.length > 0)
+  const sections =
+    visibleSections.length > 0
+      ? (
+          await Promise.all(
+            visibleSections.map(async (s) => ({
+              id: s.id,
+              title: s.title,
+              cards: await safe(() => getCardsByIds(s.productIds), []),
+            })),
+          )
+        ).filter((s) => s.cards.length > 0)
+      : [
+          {
+            id: 'destacados',
+            title: 'Productos destacados',
+            cards: await safe(() => getFeaturedCards(4), []),
+          },
+        ].filter((s) => s.cards.length > 0)
 
   return (
     <>
@@ -126,11 +143,11 @@ export default async function Home() {
           </section>
         )}
 
-        {featured.length > 0 && (
-          <section className="px-4 md:px-16 flex flex-col gap-4 max-w-[1280px] mx-auto w-full">
-            <h3 className="text-2xl font-black uppercase border-l-4 border-accent-red pl-3 text-on-surface">{config.sections.featuredTitle}</h3>
+        {sections.map((section) => (
+          <section key={section.id} className="px-4 md:px-16 flex flex-col gap-4 max-w-[1280px] mx-auto w-full">
+            <h3 className="text-2xl font-black uppercase border-l-4 border-accent-red pl-3 text-on-surface">{section.title}</h3>
             <div className="flex flex-col gap-2 md:grid md:grid-cols-2">
-              {featured.map((product) => (
+              {section.cards.map((product) => (
                 <Link
                   key={product.id}
                   href={`/producto/${product.slug}`}
@@ -149,7 +166,7 @@ export default async function Home() {
               ))}
             </div>
           </section>
-        )}
+        ))}
 
         <section className="bg-accent-red px-4 md:px-16 py-10 flex flex-col gap-4 text-center items-center relative overflow-hidden">
           <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-on-primary relative z-10">¿Necesitás asesoramiento técnico?</h3>
