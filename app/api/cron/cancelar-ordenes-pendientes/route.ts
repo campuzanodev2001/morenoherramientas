@@ -12,7 +12,10 @@ const MAX_PENDING_AGE_MS = 30 * 60 * 1000
 /**
  * GET /api/cron/cancelar-ordenes-pendientes
  * Solo acepta requests con header Authorization: Bearer CRON_SECRET.
- * Configurado en vercel.json cada 5 minutos.
+ * Configurado en vercel.json una vez por día (plan Hobby de Vercel solo
+ * admite crons diarios). Cancela todas las órdenes pendientes que superen
+ * MAX_PENDING_AGE_MS al momento de correr, así que la frecuencia no cambia
+ * el criterio, solo cuánto tardan en limpiarse.
  */
 export async function GET(request: Request): Promise<Response> {
   const auth = request.headers.get('authorization')
