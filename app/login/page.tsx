@@ -1,3 +1,4 @@
+import { googleAuthEnabled } from '@/lib/auth'
 import LoginForm from './LoginForm'
 
 export const metadata = { title: 'Ingresar — Moreno Herramientas' }
@@ -9,5 +10,5 @@ export default async function LoginPage({
 }) {
   const sp = await searchParams
   const callbackUrl = typeof sp.callbackUrl === 'string' ? sp.callbackUrl : '/'
-  return <LoginForm callbackUrl={callbackUrl} />
+  return <LoginForm callbackUrl={callbackUrl} googleEnabled={googleAuthEnabled} />
 }

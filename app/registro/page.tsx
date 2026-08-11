@@ -1,3 +1,4 @@
+import { googleAuthEnabled } from '@/lib/auth'
 import RegisterForm from './RegisterForm'
 
 export const metadata = { title: 'Crear cuenta — Moreno Herramientas' }
@@ -9,5 +10,5 @@ export default async function RegistroPage({
 }) {
   const sp = await searchParams
   const callbackUrl = typeof sp.callbackUrl === 'string' ? sp.callbackUrl : '/'
-  return <RegisterForm callbackUrl={callbackUrl} />
+  return <RegisterForm callbackUrl={callbackUrl} googleEnabled={googleAuthEnabled} />
 }

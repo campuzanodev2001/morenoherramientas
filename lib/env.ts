@@ -23,8 +23,14 @@ const serverSchema = z.object({
   // Auth
   NEXTAUTH_SECRET: z.string().min(1),
   NEXTAUTH_URL: z.url(),
-  GOOGLE_CLIENT_ID: z.string().min(1),
-  GOOGLE_CLIENT_SECRET: z.string().min(1),
+  // Google OAuth es opcional: si falta cualquiera de las dos, el provider de
+  // Google no se registra y el login queda con credentials + invitado.
+  // Ver `googleAuthEnabled` en lib/auth/index.ts.
+  // `.catch(undefined)` trata el string vacío como "no configurada": en Vercel
+  // una variable puede existir con valor vacío, y sin esto el build rompería
+  // igual que si faltara.
+  GOOGLE_CLIENT_ID: z.string().min(1).optional().catch(undefined),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional().catch(undefined),
 
   // MercadoPago
   MP_ACCESS_TOKEN: z.string().min(1),

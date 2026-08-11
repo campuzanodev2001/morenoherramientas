@@ -6,7 +6,13 @@ import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { loginSchema } from '@/lib/validations/auth'
 
-export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
+interface LoginFormProps {
+  callbackUrl: string
+  /** Google OAuth configurado en el servidor. Si es false no se muestra el botón. */
+  googleEnabled: boolean
+}
+
+export default function LoginForm({ callbackUrl, googleEnabled }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -54,19 +60,23 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         <h1 className="text-2xl font-black text-on-surface uppercase tracking-tight mb-1">Ingresar</h1>
         <p className="text-on-surface-variant text-sm font-medium mb-6">Moreno Herramientas</p>
 
-        <button
-          type="button"
-          onClick={() => signIn('google', { callbackUrl })}
-          className="w-full border-2 border-primary-container text-on-surface font-bold py-2.5 mb-5 hover:bg-primary-container/10"
-        >
-          Continuar con Google
-        </button>
+        {googleEnabled && (
+          <>
+            <button
+              type="button"
+              onClick={() => signIn('google', { callbackUrl })}
+              className="w-full border-2 border-primary-container text-on-surface font-bold py-2.5 mb-5 hover:bg-primary-container/10"
+            >
+              Continuar con Google
+            </button>
 
-        <div className="flex items-center gap-3 mb-5">
-          <span className="h-px flex-1 bg-primary-container/40" />
-          <span className="text-xs text-on-surface-variant uppercase">o con email</span>
-          <span className="h-px flex-1 bg-primary-container/40" />
-        </div>
+            <div className="flex items-center gap-3 mb-5">
+              <span className="h-px flex-1 bg-primary-container/40" />
+              <span className="text-xs text-on-surface-variant uppercase">o con email</span>
+              <span className="h-px flex-1 bg-primary-container/40" />
+            </div>
+          </>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-1.5">

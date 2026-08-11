@@ -33,6 +33,30 @@ declare module '@auth/core/jwt' {
   }
 }
 
+const googleClientId = env.GOOGLE_CLIENT_ID
+const googleClientSecret = env.GOOGLE_CLIENT_SECRET
+
+/**
+ * Google OAuth se registra solo si están cargadas AMBAS credenciales.
+ * Sin ellas el login queda con credentials + invitado, y la UI no muestra el
+ * botón de Google (ver `app/login/page.tsx` y `app/registro/page.tsx`).
+ *
+ * Se prefiere esto a un placeholder: un botón que aparece y falla al
+ * clickearlo es peor que un botón que no está.
+ */
+export const googleAuthEnabled = Boolean(googleClientId && googleClientSecret)
+
+const googleProvider =
+  googleClientId && googleClientSecret
+    ? [
+        Google({
+          clientId: googleClientId,
+          clientSecret: googleClientSecret,
+          allowDangerousEmailAccountLinking: true,
+        }),
+      ]
+    : []
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
     usersTable: users,
@@ -45,11 +69,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: 'jwt', maxAge: 7 * 24 * 60 * 60 }, // refresh 7 días
   pages: { signIn: '/login' },
   providers: [
-    Google({
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true,
-    }),
+    ...googleProvider,
     Credentials({
       credentials: { email: {}, password: {} },
       authorize: async (raw, request) => {
