@@ -8,7 +8,9 @@ import { safe } from "@/lib/db/safe";
 const poppins = Poppins({
   subsets: ["latin"],
   variable: "--font-poppins",
-  weight: ["400", "600", "700", "800", "900"],
+  // 500 incluido: `font-medium` se usa en toda la app y sin este peso el
+  // navegador caía a 400, así que el "medium" no se veía en ningún lado.
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {

@@ -1,13 +1,12 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import SearchBar from './components/SearchBar'
+import ProductCard from './components/ProductCard'
 import { getHomeConfig } from '@/lib/db/queries/store-settings'
 import { getStoreCategories } from '@/lib/db/queries/categories'
 import { getCardsByIds, getFeaturedCards } from '@/lib/db/queries/catalog'
 import { getActiveBannersByDevice } from '@/lib/db/queries/admin-banners'
 import BannerCarousel, { type BannerSlide } from './components/BannerCarousel'
 import { safe } from '@/lib/db/safe'
-import { formatPrice } from '@/lib/catalog/format'
 import { clientEnv } from '@/lib/env'
 import StoreHeader from './components/StoreHeader'
 
@@ -69,7 +68,7 @@ export default async function Home() {
           {
             id: 'destacados',
             title: 'Productos destacados',
-            cards: await safe(() => getFeaturedCards(4), []),
+            cards: await safe(() => getFeaturedCards(8), []),
           },
         ].filter((s) => s.cards.length > 0)
 
@@ -137,23 +136,9 @@ export default async function Home() {
         {sections.map((section) => (
           <section key={section.id} className="px-4 md:px-16 flex flex-col gap-4 max-w-[1280px] mx-auto w-full">
             <h3 className="text-2xl font-black uppercase border-l-4 border-accent-red pl-3 text-on-surface">{section.title}</h3>
-            <div className="flex flex-col gap-2 md:grid md:grid-cols-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {section.cards.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/producto/${product.slug}`}
-                  className="bg-white flex items-center p-3 gap-4 hover:bg-gray-50 transition-all duration-200 border border-black-100"
-                >
-                  <div className="w-20 h-20 flex-shrink-0 relative overflow-hidden">
-                    <Image src={product.imageUrl ?? '/file.svg'} alt={product.name} fill sizes="80px" className="object-contain p-1" unoptimized />
-                  </div>
-                  <div className="flex flex-col flex-grow min-w-0">
-                    <span className="text-on-surface text-xs font-bold uppercase opacity-60">{product.brand ?? ''}</span>
-                    <span className="text-on-surface text-sm font-black uppercase truncate">{product.name}</span>
-                    <span className="text-accent-red text-2xl font-semibold mt-1 leading-none">{formatPrice(product.price)}</span>
-                  </div>
-                  <span className="material-symbols-outlined text-on-surface/40 flex-shrink-0">chevron_right</span>
-                </Link>
+                <ProductCard key={product.id} card={product} />
               ))}
             </div>
           </section>

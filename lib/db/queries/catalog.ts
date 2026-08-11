@@ -9,6 +9,7 @@ export type ProductCard = {
   slug: string
   name: string
   brand: string | null
+  sku: string | null
   price: number // centavos
   compareAtPrice: number | null
   stock: number
@@ -35,6 +36,7 @@ function toCard(p: Product, imageUrl: string | null): ProductCard {
     slug: p.slug,
     name: p.name,
     brand: p.brand,
+    sku: p.sku,
     price: p.price,
     compareAtPrice: p.compareAtPrice,
     stock: p.stock,
