@@ -45,6 +45,16 @@ async function handler(request: Request): Promise<Response> {
       )
     }
 
+    // Mismo motivo que en process-payment: el total ya tiene el descuento por
+    // transferencia aplicado, así que no puede cobrarse por MercadoPago.
+    if (order.paymentMethod === 'transfer') {
+      throw new ValidationError(
+        [{ field: 'orderId', message: 'Esta orden se paga por transferencia bancaria' }],
+        'Esta orden se paga por transferencia bancaria',
+        'ORDER_IS_TRANSFER',
+      )
+    }
+
     const payerEmail = order.guestEmail ?? session?.user?.email
     if (!payerEmail) {
       throw new ValidationError([{ field: 'orderId', message: 'La orden no tiene email de contacto' }])

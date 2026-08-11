@@ -39,7 +39,12 @@ export default async function OrderDetailAdminPage({ params }: { params: Promise
         </div>
       </div>
 
-      <OrderActions orderId={order.id} status={order.status} mpApproved={order.mpStatus === 'approved'} />
+      <OrderActions
+        orderId={order.id}
+        status={order.status}
+        mpApproved={order.mpStatus === 'approved'}
+        isTransfer={order.paymentMethod === 'transfer'}
+      />
 
       {/* Timeline de estados */}
       {(() => {
@@ -94,9 +99,21 @@ export default async function OrderDetailAdminPage({ params }: { params: Promise
               <span className="text-on-surface-variant">Subtotal</span>
               <span className="font-black">{formatPrice(order.subtotal)}</span>
             </div>
+            {order.discount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-on-surface-variant">Descuento por transferencia</span>
+                <span className="font-black text-emerald-700">-{formatPrice(order.discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-on-surface-variant">Envío</span>
               <span className="font-black">{formatPrice(order.shippingCost)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-on-surface-variant">Medio de pago</span>
+              <span className="font-black uppercase text-xs">
+                {order.paymentMethod === 'transfer' ? 'Transferencia' : 'MercadoPago'}
+              </span>
             </div>
             <div className="flex justify-between pt-1">
               <span className="font-black uppercase">Total</span>

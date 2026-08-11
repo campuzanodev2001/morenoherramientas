@@ -36,6 +36,16 @@ const serverSchema = z.object({
   MP_ACCESS_TOKEN: z.string().min(1),
   MP_WEBHOOK_SECRET: z.string().min(1),
 
+  // Pago por transferencia. Si falta cualquiera de las cuatro, el método no se
+  // ofrece en el checkout (ver `getTransferAccount` en lib/payments/transfer.ts).
+  // No son secretos —el comprador los necesita para transferir— pero viven en
+  // env para no versionar datos bancarios ni tener que deployar al cambiarlos.
+  TRANSFER_BANK_NAME: z.string().min(1).optional().catch(undefined),
+  TRANSFER_ACCOUNT_HOLDER: z.string().min(1).optional().catch(undefined),
+  TRANSFER_CBU: z.string().min(1).optional().catch(undefined),
+  TRANSFER_ALIAS: z.string().min(1).optional().catch(undefined),
+  TRANSFER_CUIT: z.string().min(1).optional().catch(undefined),
+
   // Envíos
   ANDREANI_API_KEY: z.string().min(1),
   ANDREANI_CLIENT_ID: z.string().min(1),

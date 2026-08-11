@@ -8,6 +8,7 @@ import { createOrderSchema } from '@/lib/validations/checkout'
 import { priceCart } from '@/lib/checkout/pricing'
 import { getValidQuote, markQuoteSelected } from '@/lib/db/queries/shipping'
 import { createOrder } from '@/lib/db/queries/orders'
+import { isTransferEnabled, transferDiscount } from '@/lib/payments/transfer'
 import type { ShippingAddress } from '@/lib/db/types'
 
 /**
@@ -39,10 +40,24 @@ async function handler(request: Request): Promise<Response> {
       )
     }
 
-    // 8. Total = items + envío (todo desde el servidor)
+    // 8. El método de pago se revalida contra la config del servidor: un
+    // cliente no puede pedir 'transfer' —y llevarse el descuento— si el
+    // negocio no tiene la cuenta cargada.
+    const paymentMethod = input.paymentMethod
+    if (paymentMethod === 'transfer' && !isTransferEnabled()) {
+      throw new ValidationError(
+        [{ field: 'paymentMethod', message: 'El pago por transferencia no está disponible' }],
+        'El pago por transferencia no está disponible',
+        'TRANSFER_DISABLED',
+      )
+    }
+
+    // 9. Total = items - descuento + envío (todo desde el servidor).
+    // El descuento se recalcula acá, nunca llega del cliente.
     const subtotal = priced.subtotal
+    const discount = paymentMethod === 'transfer' ? transferDiscount(subtotal) : 0
     const shippingCost = quote.price
-    const total = subtotal + shippingCost
+    const total = subtotal - discount + shippingCost
 
     const session = await getServerSession()
     const userId = session?.user?.id ?? null
@@ -58,12 +73,14 @@ async function handler(request: Request): Promise<Response> {
       country: input.shippingAddress.country,
     }
 
-    // 9. Crear la orden en 'pending'
+    // 10. Crear la orden en 'pending'
     const order = await createOrder({
       userId,
       guestEmail: userId ? null : input.buyer.email.toLowerCase(),
       guestName: userId ? null : input.buyer.name,
+      paymentMethod,
       subtotal,
+      discount,
       shippingCost,
       total,
       shippingAddress,
@@ -81,8 +98,8 @@ async function handler(request: Request): Promise<Response> {
 
     await markQuoteSelected(quote.id, order.id)
 
-    // 10. Respuesta controlada
-    return NextResponse.json({ orderId: order.id, total })
+    // 11. Respuesta controlada
+    return NextResponse.json({ orderId: order.id, total, paymentMethod })
   } catch (error) {
     return handleApiError(error)
   }

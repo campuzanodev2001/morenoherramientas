@@ -10,6 +10,13 @@ export const runtime = 'nodejs'
 const MAX_PENDING_AGE_MS = 30 * 60 * 1000
 
 /**
+ * Las de transferencia tienen otro plazo: el comprador tiene que ir al
+ * homebanking y después un admin verificar el dinero. 72 h cubre un fin de
+ * semana largo sin cancelarle el pedido a alguien que ya transfirió.
+ */
+const MAX_TRANSFER_PENDING_AGE_MS = 72 * 60 * 60 * 1000
+
+/**
  * GET /api/cron/cancelar-ordenes-pendientes
  * Solo acepta requests con header Authorization: Bearer CRON_SECRET.
  * Configurado en vercel.json una vez por día (plan Hobby de Vercel solo
@@ -24,7 +31,10 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   try {
-    const cancelled = await cancelStalePendingOrders(MAX_PENDING_AGE_MS)
+    const cancelled = await cancelStalePendingOrders(
+      MAX_PENDING_AGE_MS,
+      MAX_TRANSFER_PENDING_AGE_MS,
+    )
     logInfo('cron:cancel-pending', 'Órdenes pendientes canceladas', { cancelled })
     return NextResponse.json({ cancelled })
   } catch (error) {

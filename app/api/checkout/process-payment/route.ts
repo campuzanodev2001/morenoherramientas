@@ -45,6 +45,17 @@ async function handler(request: Request): Promise<Response> {
       )
     }
 
+    // Una orden de transferencia ya tiene el 10% descontado en `total`:
+    // cobrarla por MercadoPago sería regalar el descuento. Para pagar con
+    // tarjeta hay que volver al checkout y crear una orden nueva.
+    if (order.paymentMethod === 'transfer') {
+      throw new ValidationError(
+        [{ field: 'orderId', message: 'Esta orden se paga por transferencia bancaria' }],
+        'Esta orden se paga por transferencia bancaria',
+        'ORDER_IS_TRANSFER',
+      )
+    }
+
     const payment = await createPayment({
       orderId: order.id,
       amountCents: order.total,

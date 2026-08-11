@@ -1,6 +1,6 @@
 import { pgTable, text, integer, uuid, jsonb } from 'drizzle-orm/pg-core'
 import { users } from './users'
-import { orderStatus } from './enums'
+import { orderStatus, paymentMethodEnum } from './enums'
 import { pk, createdAt, updatedAt } from './_helpers'
 
 export type ShippingAddress = {
@@ -21,9 +21,14 @@ export const orders = pgTable('orders', {
   guestEmail: text('guest_email'),
   guestName: text('guest_name'),
   status: orderStatus('status').default('pending').notNull(),
+  // 'mercadopago' | 'transfer'. El de transferencia se confirma a mano desde
+  // el admin: no hay webhook que lo haga.
+  paymentMethod: paymentMethodEnum('payment_method').default('mercadopago').notNull(),
   subtotal: integer('subtotal').notNull(), // en centavos
+  // Descuento aplicado sobre el subtotal (hoy: pago por transferencia).
+  discount: integer('discount').default(0).notNull(),
   shippingCost: integer('shipping_cost').notNull(),
-  total: integer('total').notNull(),
+  total: integer('total').notNull(), // subtotal - discount + shippingCost
   shippingAddress: jsonb('shipping_address').$type<ShippingAddress>().notNull(),
   shippingMethod: text('shipping_method'),
   shippingCarrier: text('shipping_carrier'),

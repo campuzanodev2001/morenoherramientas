@@ -8,7 +8,8 @@ import type { z } from 'zod'
 import { useCart } from '@/app/context/CartContext'
 import { useCheckoutState } from '@/lib/checkout/useCheckoutState'
 import { formatPrice } from '@/lib/catalog/format'
-import { buyerSchema, shippingAddressSchema } from '@/lib/validations/checkout'
+import { buyerSchema, shippingAddressSchema, type PaymentMethod } from '@/lib/validations/checkout'
+import { TRANSFER_DISCOUNT } from '@/lib/catalog/pricing'
 import Field from './Field'
 import ShippingSelector from './ShippingSelector'
 import PaymentStep from './PaymentStep'
@@ -17,7 +18,7 @@ const STEPS = [
   { label: 'Comprador', hint: 'Tus datos de contacto' },
   { label: 'Dirección', hint: 'A dónde lo enviamos' },
   { label: 'Envío', hint: 'Cómo y cuándo llega' },
-  { label: 'Pago', hint: 'Pagá con MercadoPago' },
+  { label: 'Pago', hint: 'Tarjeta o transferencia' },
 ] as const
 
 type Errors = Record<string, string>
@@ -33,10 +34,14 @@ function validate(schema: z.ZodTypeAny, value: unknown): Errors {
   return map
 }
 
-export default function CheckoutFlow() {
+export default function CheckoutFlow({ transferEnabled }: { transferEnabled: boolean }) {
   const router = useRouter()
   const { data: session } = useSession()
   const { items, totalPrice, ready } = useCart()
+
+  // El medio de pago vive acá y no en PaymentStep porque cambia el total que
+  // muestra el resumen. El monto real lo recalcula igual el servidor.
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mercadopago')
 
   // Una vez creada la preferencia el Brick queda montado y no hay que sacar al
   // comprador de la página, aunque el carrito cambie por debajo.
@@ -82,7 +87,9 @@ export default function CheckoutFlow() {
   }
 
   const shippingCost = state.shipping?.price ?? 0
-  const total = totalPrice + shippingCost
+  // El descuento por transferencia aplica solo a los productos, no al envío.
+  const discount = paymentMethod === 'transfer' ? Math.round(totalPrice * TRANSFER_DISCOUNT) : 0
+  const total = totalPrice - discount + shippingCost
 
   // Un paso es alcanzable si todos los anteriores están completos. Los datos
   // ya cargados nunca se pierden: viven en el estado persistido del checkout.
@@ -336,6 +343,10 @@ export default function CheckoutFlow() {
             shipping={state.shipping}
             items={cartLines}
             total={total}
+            subtotal={totalPrice}
+            method={paymentMethod}
+            onMethodChange={setPaymentMethod}
+            transferEnabled={transferEnabled}
             onBack={() => goToStep(3)}
             onPreferenceCreated={() => setPaying(true)}
           />
@@ -364,6 +375,12 @@ export default function CheckoutFlow() {
             <span className="text-on-surface-variant font-medium">Subtotal</span>
             <span className="font-black text-on-surface">{formatPrice(totalPrice)}</span>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-emerald-700 font-medium">Descuento por transferencia</span>
+              <span className="font-black text-emerald-700">-{formatPrice(discount)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-sm">
             <span className="text-on-surface-variant font-medium">Envío</span>
             <span className="font-black text-on-surface">

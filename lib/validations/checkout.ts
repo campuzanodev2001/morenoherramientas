@@ -38,11 +38,14 @@ export const quoteRequestSchema = z.object({
   items: z.array(cartLineSchema).min(1, 'El carrito está vacío'),
 })
 
+export const paymentMethodSchema = z.enum(['mercadopago', 'transfer'])
+
 export const createOrderSchema = z.object({
   buyer: buyerSchema,
   shippingAddress: shippingAddressSchema,
   shippingQuoteId: z.string().uuid('Seleccioná un método de envío'),
   items: z.array(cartLineSchema).min(1, 'El carrito está vacío'),
+  paymentMethod: paymentMethodSchema.default('mercadopago'),
 })
 
 /**
@@ -79,5 +82,6 @@ export type BuyerInput = z.infer<typeof buyerSchema>
 export type CartLineInput = z.infer<typeof cartLineSchema>
 export type QuoteRequestInput = z.infer<typeof quoteRequestSchema>
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
+export type PaymentMethod = z.infer<typeof paymentMethodSchema>
 export type ProcessPaymentInput = z.infer<typeof processPaymentSchema>
 export type CreatePreferenceInput = z.infer<typeof createPreferenceSchema>

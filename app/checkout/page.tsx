@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import CheckoutFlow from '@/app/components/checkout/CheckoutFlow'
 import StoreHeader from '@/app/components/StoreHeader'
+import { isTransferEnabled } from '@/lib/payments/transfer'
 
 export const metadata = { title: 'Checkout — Moreno Herramientas' }
 
@@ -23,7 +24,7 @@ export default function CheckoutPage() {
           </h1>
         </div>
 
-        <CheckoutFlow />
+        <CheckoutFlow transferEnabled={isTransferEnabled()} />
       </main>
     </>
   )

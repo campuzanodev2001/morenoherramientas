@@ -1,4 +1,4 @@
-import { and, desc, eq, lt, or, sql } from 'drizzle-orm'
+import { and, desc, eq, lt, ne, or, sql } from 'drizzle-orm'
 import { db, type DbOrTx } from '@/lib/db'
 import { orders, orderItems } from '@/lib/db/schemas'
 import type {
@@ -8,6 +8,7 @@ import type {
   ShippingAddress,
 } from '@/lib/db/types'
 import { AppError } from '@/lib/errors'
+import type { PaymentMethod } from '@/lib/validations/checkout'
 import { encodeCursor, decodeCursor, cursorCondition } from './_cursor'
 
 /** Transiciones de estado permitidas (06-admin.md). */
@@ -38,7 +39,9 @@ export type CreateOrderData = {
   userId?: string | null
   guestEmail?: string | null
   guestName?: string | null
+  paymentMethod: PaymentMethod
   subtotal: number
+  discount: number
   shippingCost: number
   total: number
   shippingAddress: ShippingAddress
@@ -71,7 +74,9 @@ export async function createOrder(
         guestEmail: data.guestEmail ?? null,
         guestName: data.guestName ?? null,
         status: 'pending',
+        paymentMethod: data.paymentMethod,
         subtotal: data.subtotal,
+        discount: data.discount,
         shippingCost: data.shippingCost,
         total: data.total,
         shippingAddress: data.shippingAddress,
@@ -224,12 +229,27 @@ export async function getOrderForViewer(
  * Cancela las órdenes en 'pending' más viejas que `maxAgeMs`. Devuelve la
  * cantidad cancelada. Usado por el cron de limpieza.
  */
-export async function cancelStalePendingOrders(maxAgeMs: number): Promise<number> {
+export async function cancelStalePendingOrders(
+  maxAgeMs: number,
+  transferMaxAgeMs: number,
+): Promise<number> {
   const threshold = new Date(Date.now() - maxAgeMs)
+  const transferThreshold = new Date(Date.now() - transferMaxAgeMs)
+  // Una transferencia bancaria tarda horas o días en acreditarse y la confirma
+  // un admin a mano: con el plazo corto de MercadoPago se cancelarían todas
+  // antes de que el dinero llegue.
   const cancelled = await db
     .update(orders)
     .set({ status: 'cancelled', mpDetail: 'Cancelada automáticamente por falta de pago' })
-    .where(and(eq(orders.status, 'pending'), lt(orders.createdAt, threshold)))
+    .where(
+      and(
+        eq(orders.status, 'pending'),
+        or(
+          and(ne(orders.paymentMethod, 'transfer'), lt(orders.createdAt, threshold)),
+          and(eq(orders.paymentMethod, 'transfer'), lt(orders.createdAt, transferThreshold)),
+        ),
+      ),
+    )
     .returning({ id: orders.id })
   return cancelled.length
 }

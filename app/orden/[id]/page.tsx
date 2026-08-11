@@ -7,6 +7,9 @@ import { getMpErrorMessage } from '@/lib/errors/mp-error-messages'
 import type { OrderStatus } from '@/lib/db/types'
 import OrderCleanup from './OrderCleanup'
 import StoreHeader from '@/app/components/StoreHeader'
+import TransferInstructions from '@/app/components/checkout/TransferInstructions'
+import { getTransferAccount } from '@/lib/payments/transfer'
+import { env } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,6 +61,14 @@ const STATUS_VIEW: Record<
   },
 }
 
+/** Órdenes por transferencia todavía sin pagar: no hay nada "procesándose". */
+const TRANSFER_PENDING_VIEW = {
+  icon: 'account_balance',
+  title: 'Reservamos tu pedido',
+  tone: 'text-on-surface',
+  message: 'Transferí el importe con los datos de abajo y confirmamos el pedido al verificarlo.',
+} as const
+
 export default async function OrderResultPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const order = await getOrderWithItemsById(id)
@@ -70,7 +81,12 @@ export default async function OrderResultPage({ params }: { params: Promise<{ id
   // la orden de OTRO usuario logueado.
   if (!isOwner && !isGuestOrder) notFound()
 
-  const view = STATUS_VIEW[order.status]
+  const isTransfer = order.paymentMethod === 'transfer'
+  const account = isTransfer ? getTransferAccount() : null
+  // Con transferencia "pending" no significa "el pago se está procesando":
+  // significa que todavía no transfirió. El copy tiene que decir eso.
+  const view =
+    isTransfer && order.status === 'pending' ? TRANSFER_PENDING_VIEW : STATUS_VIEW[order.status]
 
   return (
     <>
@@ -97,6 +113,15 @@ export default async function OrderResultPage({ params }: { params: Promise<{ id
           </p>
         </div>
 
+        {account && order.status === 'pending' && (
+          <TransferInstructions
+            account={account}
+            orderNumber={order.orderNumber}
+            total={order.total}
+            contactEmail={env.RESEND_FROM_EMAIL}
+          />
+        )}
+
         <section className="bg-surface-container-lowest border-2 border-charcoal p-6 flex flex-col gap-4">
           <h2 className="text-base font-black uppercase tracking-wide text-on-surface border-b-2 border-charcoal pb-3">
             Detalle
@@ -118,6 +143,12 @@ export default async function OrderResultPage({ params }: { params: Promise<{ id
               <span className="text-on-surface-variant font-medium">Subtotal</span>
               <span className="font-black text-on-surface">{formatPrice(order.subtotal)}</span>
             </div>
+            {order.discount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-emerald-700 font-medium">Descuento por transferencia</span>
+                <span className="font-black text-emerald-700">-{formatPrice(order.discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-on-surface-variant font-medium">Envío</span>
               <span className="font-black text-on-surface">{formatPrice(order.shippingCost)}</span>

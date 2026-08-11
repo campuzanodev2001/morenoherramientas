@@ -8,6 +8,12 @@ export const userRole = pgEnum('user_role', ['customer', 'admin'])
  */
 export const bannerDevice = pgEnum('banner_device', ['mobile', 'desktop'])
 
+/**
+ * Cómo paga el comprador. `transfer` no pasa por MercadoPago: la orden queda
+ * en `pending` hasta que un admin verifica la transferencia y la confirma.
+ */
+export const paymentMethodEnum = pgEnum('payment_method', ['mercadopago', 'transfer'])
+
 export const orderStatus = pgEnum('order_status', [
   'pending', // creada, esperando pago
   'confirmed', // pago aprobado
