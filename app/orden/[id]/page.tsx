@@ -7,6 +7,7 @@ import { getMpErrorMessage } from '@/lib/errors/mp-error-messages'
 import type { OrderStatus } from '@/lib/db/types'
 import OrderCleanup from './OrderCleanup'
 import StoreHeader from '@/app/components/StoreHeader'
+import StoreFooter from '@/app/components/StoreFooter'
 import TransferInstructions from '@/app/components/checkout/TransferInstructions'
 import { getTransferAccount } from '@/lib/payments/transfer'
 import { env } from '@/lib/env'
@@ -191,6 +192,7 @@ export default async function OrderResultPage({ params }: { params: Promise<{ id
           </Link>
         </div>
       </main>
+      <StoreFooter />
     </>
   )
 }

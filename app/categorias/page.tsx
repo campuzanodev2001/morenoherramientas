@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getStoreCategories, type StoreCategory } from '@/lib/db/queries/categories'
 import { safe } from '@/lib/db/safe'
+import StoreFooter from '@/app/components/StoreFooter'
 
 export const revalidate = 300
 
@@ -91,6 +92,7 @@ export default async function CategoriasPage() {
           </>
         )}
       </main>
+      <StoreFooter />
     </div>
   )
 }

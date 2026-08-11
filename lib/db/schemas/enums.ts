@@ -14,6 +14,16 @@ export const bannerDevice = pgEnum('banner_device', ['mobile', 'desktop'])
  */
 export const paymentMethodEnum = pgEnum('payment_method', ['mercadopago', 'transfer'])
 
+/**
+ * Estado de un pedido de arrepentimiento. `resolved` cubre tanto la
+ * cancelación efectiva como el rechazo fundado: el detalle va en `adminNote`.
+ */
+export const cancellationStatus = pgEnum('cancellation_status', [
+  'pending', // recibido, sin revisar
+  'in_review', // el admin lo está gestionando
+  'resolved', // cerrado (cancelado y reembolsado, o rechazado con motivo)
+])
+
 export const orderStatus = pgEnum('order_status', [
   'pending', // creada, esperando pago
   'confirmed', // pago aprobado

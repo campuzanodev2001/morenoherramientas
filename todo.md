@@ -43,17 +43,20 @@ Crear las cuentas y obtener las claves de cada integración (todas tienen su lug
 
 ## Fase 3 — Cargar el catálogo real
 
-Con `DATABASE_URL` real en `.env.local`, exportar el Excel del proveedor a CSV UTF-8 y
-correr **en orden**:
+Con `DATABASE_URL` real en `.env.local`, exportar el Excel del proveedor a
+`data/stock-raw.csv` (UTF-8) y correr **en orden**:
 
 ```bash
-npx tsx --env-file=.env.local scripts/generate-categories.ts
-npx tsx --env-file=.env.local scripts/import-products.ts ./data/STOCK.csv
+npx tsx --env-file=.env.local scripts/clean-stock.ts
+npx tsx --env-file=.env.local scripts/import-stock.ts      # acepta --dry-run
+npx tsx --env-file=.env.local scripts/apply-specs.ts
+npx tsx --env-file=.env.local scripts/apply-categories.ts
 ```
 
-- [ ] Revisar `import-report.txt` (procesadas / insertados / actualizados / errores)
-- [ ] Revisar `import-errors.log` (filas sin precio o sin código)
-- [ ] Recategorizar desde el admin lo que cayó en `sin-categorizar`
+- [x] Catálogo cargado: 1743 productos, 22 categorías, 0 sin categorizar ✅
+- [x] Revisar los reportes en `data/` (`reporte-limpieza.txt`, `reporte-specs.txt`,
+      `reporte-categorias.txt`)
+- [ ] Cargar las imágenes reales de los productos (hoy el catálogo no tiene fotos)
 
 ---
 
@@ -113,6 +116,36 @@ Probar el flujo real, no solo el build:
 - [ ] Hacer **una compra real chica de punta a punta** (cobro + webhook + stock + mail en prod)
 - [ ] Confirmar HTTPS, security headers/CSP y que `/admin`, `/api`, `/cuenta` están
       bloqueados en `robots.ts`
+
+---
+
+## Fase 9 — Datos legales del footer (BLOQUEANTE para el go-live)
+
+El footer y las páginas institucionales ya están, pero varios datos son
+**obligatorios por ley** y todavía son placeholders. Se cargan todos en un solo
+archivo: `lib/store/business.ts`.
+
+Para ver qué falta: `npx tsx scripts/check-business-data.ts`
+
+Pedirle al cliente:
+
+- [ ] **Razón social** inscripta (Ley 24.240 art. 4)
+- [ ] **CUIT** del titular
+- [ ] **Domicilio comercial** completo (calle, localidad, provincia, CP)
+- [ ] **URL del Data Fiscal de ARCA** (formulario 960/D con QR) — obligatorio en e-commerce
+- [ ] **Email de contacto** — es además el destinatario de los avisos de arrepentimiento
+- [ ] WhatsApp, teléfono y horario de atención *(opcionales pero recomendados)*
+- [ ] URLs de Instagram y Facebook *(opcionales)*
+
+Además:
+
+- [ ] Aplicar la migración `0004_cancellation_requests` (`npx drizzle-kit migrate`)
+- [ ] Reemplazar el WhatsApp placeholder del CTA de la home (`app/page.tsx`)
+- [ ] **Que un abogado revise** `/terminos` y `/privacidad`. Son borradores razonables
+      y cubren lo que exige la normativa, pero no son asesoramiento legal.
+- [ ] Registrar la base de datos personales ante la **AAIP** (Ley 25.326)
+- [ ] Probar el flujo de arrepentimiento de punta a punta: enviar el formulario,
+      verificar los dos mails (comprador + admin) y la gestión en `/admin/arrepentimientos`
 
 ---
 

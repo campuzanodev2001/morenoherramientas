@@ -7,6 +7,7 @@ import { getCategoryBySlug, getStoreCategories, type StoreCategory } from '@/lib
 import { getCategoryCards } from '@/lib/db/queries/catalog'
 import { safe } from '@/lib/db/safe'
 import StoreHeader from '@/app/components/StoreHeader'
+import StoreFooter from '@/app/components/StoreFooter'
 
 export const revalidate = 300
 
@@ -101,6 +102,7 @@ export default async function CategoriaPage({
 
         <Pagination basePath={`/categoria/${slug}`} page={currentPage} totalPages={totalPages} />
       </main>
+      <StoreFooter />
     </>
   )
 }

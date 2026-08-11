@@ -12,6 +12,7 @@ import { formatPrice } from '@/lib/catalog/format'
 import { clientEnv } from '@/lib/env'
 import type { CartProductRef } from '@/app/context/CartContext'
 import StoreHeader from '@/app/components/StoreHeader'
+import StoreFooter from '@/app/components/StoreFooter'
 
 export const revalidate = 300
 
@@ -216,6 +217,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </section>
         )}
       </main>
+      <StoreFooter />
     </>
   )
 }

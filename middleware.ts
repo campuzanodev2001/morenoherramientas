@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
 
 /**
- * Orden de ejecución (02-security.md):
+ * Orden de ejecución:
  *  1. Rate limiting API_PUBLIC a /api/* (excepto /api/auth/*)
  *  2. Proteger /cuenta/* → redirigir a /login si no hay sesión
  *  3. Agregar security headers a todas las respuestas
@@ -31,7 +31,10 @@ function securityHeaders(response: NextResponse): NextResponse {
       // mlstatic.com sirve los logos de tarjetas y medios de pago del Brick.
       // Los dominios de MercadoLibre van acá porque el pixel de fingerprint se
       // carga como imagen (mercadolivre.com, con "v", es el de Brasil).
-      "img-src 'self' data: blob: https://res.cloudinary.com https://*.mercadopago.com https://*.mlstatic.com https://*.mercadolibre.com https://*.mercadolivre.com https://lh3.googleusercontent.com",
+      // afip.gob.ar sirve el logo del Data Fiscal (formulario 960/D) que el
+      // footer está obligado a mostrar. Es un hotlink al sitio del organismo:
+      // así lo exige ARCA, no se puede autohostear la imagen.
+      "img-src 'self' data: blob: https://res.cloudinary.com https://*.mercadopago.com https://*.mlstatic.com https://*.mercadolibre.com https://*.mercadolivre.com https://lh3.googleusercontent.com https://www.afip.gob.ar https://qr.afip.gob.ar",
       "font-src 'self' data: https://fonts.gstatic.com",
       // api.cloudinary.com es el host de subida y NO es el mismo que
       // res.cloudinary.com (el de entrega, que va en img-src). Sin él, el

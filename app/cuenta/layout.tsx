@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import StoreHeader from '@/app/components/StoreHeader'
+import StoreFooter from '@/app/components/StoreFooter'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,6 +31,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
           <div className="min-w-0">{children}</div>
         </div>
       </main>
+      <StoreFooter />
     </>
   )
 }

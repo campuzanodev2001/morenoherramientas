@@ -5,6 +5,7 @@ import { searchProducts } from '@/lib/db/queries/search'
 import { getCardsByIds } from '@/lib/db/queries/catalog'
 import { safe } from '@/lib/db/safe'
 import StoreHeader from '@/app/components/StoreHeader'
+import StoreFooter from '@/app/components/StoreFooter'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,6 +53,7 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
           </div>
         )}
       </main>
+      <StoreFooter />
     </>
   )
 }

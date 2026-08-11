@@ -35,6 +35,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/categorias`, changeFrequency: 'weekly', priority: 0.8 },
   ]
 
+  // Institucionales y legales: cambian poco pero tienen que ser indexables.
+  // El botón de arrepentimiento va con prioridad alta a propósito: la norma
+  // pide que sea fácil de encontrar, y eso incluye desde un buscador.
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: `${base}/como-comprar`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/envios`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/devoluciones`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/contacto`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/arrepentimiento`, changeFrequency: 'yearly', priority: 0.5 },
+    { url: `${base}/terminos`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${base}/privacidad`, changeFrequency: 'yearly', priority: 0.3 },
+  ]
+
   const flatten = (nodes: StoreCategory[]): StoreCategory[] =>
     nodes.flatMap((n) => [n, ...flatten(n.children)])
 
@@ -51,5 +64,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  return [...home, ...categoryUrls, ...productUrls].slice(0, MAX_URLS)
+  return [...home, ...staticPages, ...categoryUrls, ...productUrls].slice(0, MAX_URLS)
 }

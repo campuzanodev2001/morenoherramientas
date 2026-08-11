@@ -10,6 +10,7 @@ const navItems = [
   { href: '/admin/ordenes', label: 'Órdenes', icon: 'receipt_long', exact: false },
   { href: '/admin/productos', label: 'Productos', icon: 'inventory_2', exact: false },
   { href: '/admin/categorias', label: 'Categorías', icon: 'category', exact: false },
+  { href: '/admin/arrepentimientos', label: 'Arrepentimientos', icon: 'undo', exact: false },
   { href: '/admin/home', label: 'Home', icon: 'home', exact: false },
   { href: '/admin/secciones', label: 'Secciones', icon: 'view_quilt', exact: false },
 ]

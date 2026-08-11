@@ -8,7 +8,12 @@ import {
   orderDeliveredEmail,
   paymentFailedEmail,
   welcomeEmail,
+  cancellationReceivedEmail,
+  cancellationAdminEmail,
+  type CancellationRequestProps,
 } from './templates'
+import { business, resolved } from '@/lib/store/business'
+import { env } from '@/lib/env'
 import type { OrderWithItems } from '@/lib/db/queries/orders'
 
 /** Email del destinatario de una orden: invitado o usuario registrado. */
@@ -106,6 +111,54 @@ export async function sendPaymentFailed(orderId: string): Promise<void> {
   } catch (error) {
     logError('mail:dispatch', 'sendPaymentFailed falló', {
       orderId,
+      error: error instanceof Error ? error.message : 'unknown',
+    })
+  }
+}
+
+/**
+ * Casilla donde el negocio recibe los avisos internos. Mientras no esté cargado
+ * el mail real del cliente cae en el remitente de Resend, que al menos existe.
+ */
+function adminInbox(): string {
+  return resolved(business.email) ?? env.RESEND_FROM_EMAIL
+}
+
+/**
+ * Manda los dos mails de un pedido de arrepentimiento: la constancia al
+ * comprador y el aviso al negocio. Son independientes a propósito — si falla
+ * el del comprador, el admin igual se entera y puede responder dentro del plazo.
+ */
+export async function sendCancellationRequestEmails(
+  requestId: string,
+  props: CancellationRequestProps,
+): Promise<void> {
+  try {
+    const forCustomer = cancellationReceivedEmail(props)
+    await sendMail({
+      ...forCustomer,
+      to: props.email,
+      template: 'CancellationReceived',
+      idempotencyKey: `${requestId}:CancellationReceived`,
+    })
+  } catch (error) {
+    logError('mail:dispatch', 'sendCancellationRequestEmails (comprador) falló', {
+      requestId,
+      error: error instanceof Error ? error.message : 'unknown',
+    })
+  }
+
+  try {
+    const forAdmin = cancellationAdminEmail(props)
+    await sendMail({
+      ...forAdmin,
+      to: adminInbox(),
+      template: 'CancellationAdmin',
+      idempotencyKey: `${requestId}:CancellationAdmin`,
+    })
+  } catch (error) {
+    logError('mail:dispatch', 'sendCancellationRequestEmails (admin) falló', {
+      requestId,
       error: error instanceof Error ? error.message : 'unknown',
     })
   }

@@ -175,6 +175,58 @@ export function paymentFailedEmail(p: PaymentFailedProps): Email {
   }
 }
 
+export type CancellationRequestProps = {
+  orderNumber: string
+  name: string
+  email: string
+  phone: string | null
+  reason: string | null
+  /** False cuando el número tipeado no matcheó ninguna orden de ese email. */
+  orderFound: boolean
+}
+
+/** Acuse de recibo al comprador. La ley exige constancia del pedido. */
+export function cancellationReceivedEmail(p: CancellationRequestProps): Email {
+  const name = escapeHtml(p.name.split(' ')[0] ?? p.name)
+  const body = `
+    <p style="font-size:15px;margin:0 0 8px">Hola ${name}, recibimos tu pedido de arrepentimiento para la orden <strong>${escapeHtml(p.orderNumber)}</strong>.</p>
+    <p style="font-size:14px;margin:8px 0">Este mail es tu constancia. Te vamos a contactar dentro de las próximas 48 horas hábiles para coordinar la devolución del producto y el reintegro del importe.</p>
+    <p style="font-size:14px;margin:8px 0;color:#555">El costo de la devolución corre por nuestra cuenta, tal como establece el artículo 34 de la Ley 24.240.</p>`
+  return {
+    subject: `Recibimos tu pedido de arrepentimiento — orden ${p.orderNumber}`,
+    html: baseEmail({
+      heading: 'Pedido registrado',
+      bodyHtml: body,
+      ctaText: 'Ver mis pedidos',
+      ctaUrl: appUrl('/cuenta/ordenes'),
+    }),
+  }
+}
+
+/** Aviso interno al admin. Tiene plazo legal, así que se manda aparte. */
+export function cancellationAdminEmail(p: CancellationRequestProps): Email {
+  const warn = p.orderFound
+    ? ''
+    : `<p style="font-size:14px;margin:8px 0;padding:10px;background:#fff4f4;border-left:4px solid ${RED}"><strong>Atención:</strong> el número de orden no coincide con ninguna orden de ese email. Verificar a mano antes de responder.</p>`
+  const body = `
+    <p style="font-size:15px;margin:0 0 8px">Nuevo pedido de arrepentimiento para la orden <strong>${escapeHtml(p.orderNumber)}</strong>.</p>
+    ${warn}
+    <p style="font-size:14px;margin:4px 0"><strong>Nombre:</strong> ${escapeHtml(p.name)}</p>
+    <p style="font-size:14px;margin:4px 0"><strong>Email:</strong> ${escapeHtml(p.email)}</p>
+    ${p.phone ? `<p style="font-size:14px;margin:4px 0"><strong>Teléfono:</strong> ${escapeHtml(p.phone)}</p>` : ''}
+    <p style="font-size:14px;margin:4px 0"><strong>Motivo:</strong> ${p.reason ? escapeHtml(p.reason) : 'no indicó (no está obligado)'}</p>
+    <p style="font-size:13px;margin:12px 0;color:#777">Hay 48 horas hábiles para responder.</p>`
+  return {
+    subject: `[Arrepentimiento] Orden ${p.orderNumber}`,
+    html: baseEmail({
+      heading: 'Pedido de arrepentimiento',
+      bodyHtml: body,
+      ctaText: 'Gestionar el pedido',
+      ctaUrl: appUrl('/admin/arrepentimientos'),
+    }),
+  }
+}
+
 export type WelcomeEmailProps = {
   name: string | null
 }

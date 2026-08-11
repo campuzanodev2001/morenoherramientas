@@ -40,9 +40,13 @@ export type NewBanner = InferInsertModel<typeof schema.banners>
 export type MailLog = InferSelectModel<typeof schema.mailLogs>
 export type NewMailLog = InferInsertModel<typeof schema.mailLogs>
 
+export type CancellationRequest = InferSelectModel<typeof schema.cancellationRequests>
+export type NewCancellationRequest = InferInsertModel<typeof schema.cancellationRequests>
+
 // Tipos auxiliares reexportados desde los schemas
 export type { ShippingAddress } from './schemas/orders'
 export type { ProductSpec } from './schemas/products'
 export type OrderStatus = Order['status']
+export type CancellationStatus = CancellationRequest['status']
 export type Role = User['role']
 export type BannerDevice = Banner['device']

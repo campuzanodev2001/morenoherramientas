@@ -9,6 +9,7 @@ import BannerCarousel, { type BannerSlide } from './components/BannerCarousel'
 import { safe } from '@/lib/db/safe'
 import { clientEnv } from '@/lib/env'
 import StoreHeader from './components/StoreHeader'
+import StoreFooter from './components/StoreFooter'
 
 export const revalidate = 300
 
@@ -159,14 +160,7 @@ export default async function Home() {
         </section>
       </main>
 
-      <footer className="bg-primary-container w-full mt-8 md:mt-12 border-t-4 border-accent-red">
-        <div className="max-w-[1280px] mx-auto flex flex-col p-4 md:p-16 gap-6">
-          <h2 className="text-2xl font-black text-on-primary uppercase tracking-tighter">Moreno Herramientas</h2>
-          <div className="pt-4 border-t border-white/10">
-            <p className="text-xs text-white/60">© 2026 Moreno Herramientas. Calidad y Precisión Industrial.</p>
-          </div>
-        </div>
-      </footer>
+      <StoreFooter />
     </>
   )
 }
