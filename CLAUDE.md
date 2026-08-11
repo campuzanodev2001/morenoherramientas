@@ -255,8 +255,9 @@ Las descripciones se componen a partir de datos verificados: nombre, marca,
 specs confirmadas y el texto del fabricante cuando el catálogo lo trae. No
 afirman usos ni prestaciones que no estén respaldados.
 
-Los 12 productos mock del seed fueron borrados. `seed-mock-products.ts` sigue
-existiendo para testear flujos, pero NO correrlo contra la DB con datos reales.
+Los 12 productos mock del seed fueron borrados, junto con los scripts de datos
+de prueba (`seed-mock-products.ts`, `seed-test-product.ts`, `assign-demo-images.ts`).
+La DB solo tiene datos reales del cliente.
 
 ### Origen de los datos
 
@@ -414,19 +415,6 @@ Antes de avanzar al siguiente prompt:
 4. Errores visibles al usuario, nunca pantalla en blanco
 
 ---
-
-## Archivos de contexto por área
-
-| Archivo | Cuándo cargarlo |
-|---|---|
-| `01-database.md` | Schemas, migraciones, queries |
-| `02-security.md` | Auth, rate limiting, errores, middleware |
-| `03-catalog.md` | Catálogo, admin de productos, Cloudinary |
-| `04-cart-checkout.md` | Carrito, checkout, MercadoPago, webhook |
-| `05-notifications.md` | Mails transaccionales |
-| `06-admin.md` | Panel de órdenes |
-| `07-account.md` | Cuenta del cliente |
-| `08-launch.md` | Importación masiva, SEO, deploy |
 
 ## graphify
 

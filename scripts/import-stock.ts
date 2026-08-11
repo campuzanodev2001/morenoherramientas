@@ -73,7 +73,7 @@ async function main(): Promise<void> {
   const categoryIdBySlug = new Map(catRows.map((c) => [c.slug, c.id]))
   const faltantes = [...new Set(rows.map((r) => r.categorySlug))].filter((s) => !categoryIdBySlug.has(s))
   if (faltantes.length > 0) {
-    throw new Error(`Faltan categorías en la DB: ${faltantes.join(', ')}. Corré generate-categories.ts.`)
+    throw new Error(`Faltan categorías en la DB: ${faltantes.join(', ')}. Corré apply-categories.ts.`)
   }
 
   const existing = await db.select({ sku: products.sku }).from(products)

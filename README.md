@@ -156,22 +156,31 @@ reales). Reemplazá por credenciales reales para conectar los servicios.
 
 ## Importación masiva de productos
 
-El archivo del proveedor (Excel) trae las columnas `Código`, `Producto` (con el precio
-embebido como `NOMBRE /PRECIO/`), `Departamento` (marca) y `Existencia` (stock).
-Exportalo a CSV UTF-8 y corré, **en este orden**:
+El archivo del proveedor (Excel) trae las columnas `Código`, `Producto` (con el **precio
+de costo** embebido como `NOMBRE /COSTO/`), `Departamento` (marca), `P. Venta` y
+`Existencia` (stock). Solo se publican las filas con `Existencia > 0`, y el precio que
+sale al público es `P. Venta` — nunca el costo embebido en el nombre.
+
+Exportalo a CSV UTF-8 a `data/stock-raw.csv` y corré, **en este orden**:
 
 ```bash
-# 1. Crea las categorías predefinidas (idempotente)
-npx tsx --env-file=.env.local scripts/generate-categories.ts
+# 1. Limpia nombres, saca códigos y notas internas → data/productos-limpios.json
+npx tsx --env-file=.env.local scripts/clean-stock.ts
 
-# 2. Importa los productos (lotes de 100, upsert por SKU)
-npx tsx --env-file=.env.local scripts/import-products.ts ./data/STOCK.csv
+# 2. Inserta/actualiza por SKU (idempotente, acepta --dry-run)
+npx tsx --env-file=.env.local scripts/import-stock.ts
+
+# 3. Specs técnicas (catálogo de marca + derivadas del nombre)
+npx tsx --env-file=.env.local scripts/apply-specs.ts
+
+# 4. Crea la taxonomía y asigna categoría a cada producto
+npx tsx --env-file=.env.local scripts/apply-categories.ts
 ```
 
-El import genera `import-report.txt` (procesadas / insertados / actualizados / errores)
-e `import-errors.log` (filas sin precio o sin código). Categoriza por palabras clave; lo
-que no matchea va a `sin-categorizar`. El slug se hace único agregando el SKU ante
-conflicto.
+Cada paso deja su reporte en `data/` (`reporte-limpieza.txt`, `reporte-specs.txt`,
+`reporte-categorias.txt`). Lo que no matchea ninguna regla va a `sin-categorizar`. El
+mismo pipeline es el camino para refrescar precios y stock cuando llega una planilla
+nueva. Detalle completo del pipeline y de las trampas de los datos en `CLAUDE.md`.
 
 ---
 
@@ -218,7 +227,7 @@ producción **sin slash final** y `CRON_SECRET` aleatorio de ≥32 caracteres.
 
 ---
 
-## Auditoría de seguridad (checklist `08-launch.md`)
+## Auditoría de seguridad
 
 - **Autorización**: las órdenes se filtran SIEMPRE por `userId`
   (`getOrderById`/`getOrdersByUser`); `/cuenta/ordenes/[id]` ajena → `notFound()`
