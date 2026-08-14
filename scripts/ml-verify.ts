@@ -318,7 +318,51 @@ const VARIANT_GROUPS: readonly VariantGroup[] = [
     label: 'impacto',
     variants: [{ value: 'impacto', terms: ['impacto'] }],
   },
+  {
+    // Bosch vende la misma medida de sierra copa en dos líneas distintas.
+    // "Progressor" es su nombre comercial para la multimaterial, así que van
+    // juntas; la bimetálica es otro producto y otro precio.
+    label: 'linea',
+    variants: [
+      { value: 'multimaterial', terms: ['multi\\s?material', 'progressor', 'progresor'] },
+      { value: 'bimetal', terms: ['bimetalic\\w*', 'bimetal'] },
+      { value: 'diamantado', terms: ['diamantad\\w*'] },
+      { value: 'widia', terms: ['widia'] },
+    ],
+  },
 ]
+
+/**
+ * Códigos sueltos del nombre: normas ("Electrodo 6013"), modelos compatibles
+ * ("Grapas para TR35, TR40"). No son medidas, pero identifican el producto
+ * igual de fuerte, y la primera versión los ignoraba: por eso un electrodo
+ * 6013 se llevó la foto de un 6010.
+ *
+ * A diferencia de las dimensiones, esto se compara en UNA sola dirección: se
+ * exige que los códigos de NUESTRO nombre estén en la ficha, no al revés. Los
+ * títulos de ML vienen cargados de códigos internos del vendedor —"Lima ...
+ * 4598 Fs"— y exigir simetría rechazaría matches correctos por ruido ajeno.
+ */
+export function significantCodes(name: string, dimensions: Dimensions): string[] {
+  const text = normalizeText(name)
+  const dimensionValues = new Set<string>()
+  for (const values of dimensions.values()) for (const value of values) dimensionValues.add(value)
+
+  const codes = new Set<string>()
+  for (const match of text.matchAll(/\b([a-z]{0,3}\d{2,5}[a-z]?)\b/g)) {
+    const token = match[1]
+    if (token === undefined) continue
+    const digits = token.replace(/\D/g, '')
+    // Un número pelado necesita 3 cifras para significar algo: el "20" de
+    // "SAE(20)" o el "24" de "24 Lts" son ruido, no identificadores.
+    if (/^\d+$/.test(token) && digits.length < 3) continue
+    if (digits.length < 2) continue
+    // Si ese número ya lo explicó una dimensión, no es un código aparte.
+    if (dimensionValues.has(String(Number.parseFloat(digits)))) continue
+    codes.add(token)
+  }
+  return [...codes]
+}
 
 /** Qué variantes canónicas de un grupo nombra un texto ya normalizado. */
 function variantValues(text: string, group: VariantGroup): Set<string> {
@@ -400,6 +444,11 @@ export type VerifyOptions = {
    * código de fábrica de esa pieza, así que el código acota pero no prueba.
    */
   codeEvidence?: boolean
+  /**
+   * El SKU del producto, cuando aparece dentro de su propio nombre. Se excluye
+   * de la regla de códigos: la ficha de ML no tiene por qué repetirlo.
+   */
+  skuToIgnore?: string
 }
 
 export function verifyCandidate(
@@ -515,6 +564,16 @@ export function verifyCandidate(
       evidence.push(`modelo=${model}`)
       break
     }
+  }
+
+  // ── 6. Códigos sueltos del nombre ───────────────────────────────────────
+  for (const code of significantCodes(our.name, ourDims)) {
+    // El propio SKU no cuenta: que la ficha no lo repita no prueba nada.
+    if (options.skuToIgnore !== undefined && code === normalizeText(options.skuToIgnore)) continue
+    if (!new RegExp(`(?<![a-z0-9])${code}(?![a-z0-9])`).test(theirText)) {
+      return { ok: false, reason: `el código "${code}" de nuestro nombre no está en la ficha` }
+    }
+    evidence.push(`codigo=${code}`)
   }
 
   if (options.codeEvidence === true) evidence.push('codigo-fabrica')

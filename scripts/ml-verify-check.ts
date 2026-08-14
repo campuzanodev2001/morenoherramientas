@@ -237,6 +237,42 @@ const CASES: Case[] = [
     expect: 'ok',
   },
   {
+    label: 'REGRESIÓN: norma de electrodo distinta (6013 contra 6010)',
+    our: { name: 'Electrodo Sideral 6013 4mm X kg', brand: 'Sideral' },
+    cand: c('Electrodo para soldadura Sideral 6010 4 mm', 'Sideral'),
+    expect: 'reject',
+  },
+  {
+    label: 'misma norma de electrodo → sí matchea',
+    our: { name: 'Electrodo Sideral 6013 4mm X kg', brand: 'Sideral' },
+    cand: c('Electrodo para soldadura Sideral 6013 4 mm', 'Sideral'),
+    expect: 'ok',
+  },
+  {
+    label: 'REGRESIÓN: multimaterial contra bimetálica (misma medida)',
+    our: { name: 'Sierra Copa Multi Material 59mm Bosch', brand: 'Bosch' },
+    cand: c('Sierra Copa Bimetálica 59mm C/ Cobalto Bosch', 'Bosch'),
+    expect: 'reject',
+  },
+  {
+    label: 'Progressor es la multimaterial de Bosch → sí matchea',
+    our: { name: 'Sierra Copa Multi Material 27mm Bosch', brand: 'Bosch' },
+    cand: c('Sierra Copa Progressor 27mm Bosch', 'Bosch'),
+    expect: 'ok',
+  },
+  {
+    label: 'REGRESIÓN: modelos compatibles distintos en las grapas',
+    our: { name: 'Grapas 5/16 para TR35, TR40 Stanley', brand: 'Stanley' },
+    cand: c('Grapas Para Trabajo Pesado 5/16 Stanley Tra705t', 'Stanley'),
+    expect: 'reject',
+  },
+  {
+    label: 'código del vendedor en la ficha que no está en el nuestro → no molesta',
+    our: { name: 'Lima Bremen Redonda Bastarda 8 pulg C/Cabo', brand: 'Bremen' },
+    cand: c('Lima Para Metal Bremen Redonda Bastarda 8 PuLG 4598 Fs', 'Bremen'),
+    expect: 'ok',
+  },
+  {
     label: 'código + tipo coherente y sin dimensión → sí matchea',
     our: { name: 'Cubo para Caliper de Freno Eurotech', brand: 'Eurotech' },
     cand: c('Cubo Compresor Caliper Freno Eurotech Universal', 'Eurotech'),

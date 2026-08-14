@@ -115,7 +115,7 @@ function decide(our: CleanProduct, results: readonly MlProduct[]): Outcome {
     if (!skuAppearsAsCode(our.sku, candidate)) continue
     // El código habilita la vía, no la resuelve: la ficha tiene que pasar
     // igual marca, tipo, juego, variantes y dimensiones.
-    const verdict = verifyCandidate(our, candidate, { codeEvidence: true })
+    const verdict = verifyCandidate(our, candidate, { codeEvidence: true, skuToIgnore: our.sku })
     if (verdict.ok) byCode.push({ product: result, evidence: [`codigo=${our.sku}`, ...verdict.evidence] })
   }
 
@@ -142,7 +142,7 @@ function decide(our: CleanProduct, results: readonly MlProduct[]): Outcome {
   const reasons = new Map<string, number>()
 
   for (const result of results) {
-    const verdict = verifyCandidate(our, toCandidate(result))
+    const verdict = verifyCandidate(our, toCandidate(result), { skuToIgnore: our.sku })
     if (verdict.ok) passed.push({ product: result, evidence: verdict.evidence })
     else reasons.set(verdict.reason, (reasons.get(verdict.reason) ?? 0) + 1)
   }
