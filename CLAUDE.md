@@ -244,7 +244,7 @@ disponibles en el plan Free de Supabase.
 1743 con descripción (100%)
 1713 con al menos una spec · 904 con 3 o más · promedio 2,95
   30 sin ninguna spec  ← sin marca y sin dato técnico en ninguna fuente
- 769 con imágenes      ← 2770 fotos de ML, máximo 6 por producto
+ 809 con imágenes      ← fotos de ML, máximo 6 por producto
    2 inactivos         ← margen cero, esperando confirmación del cliente
 ```
 
@@ -304,6 +304,13 @@ xlsx → CSV → clean-stock.ts → productos-limpios.json → import-stock.ts �
 | `enrich-catalog.ts` | Specs desde catálogos con ficha por producto (Lusqtoff) |
 | `apply-specs.ts` | Combina specs de catálogo + derivadas del nombre → DB |
 | `apply-categories.ts` | Crea la taxonomía y asigna categoría a cada producto |
+| `ml-fetch.ts` | Cruza contra el catálogo de ML por EAN. Agotado: 992 SKU |
+| `ml-match-names.ts` | Para los que no tienen EAN: match por nombre y por código de fábrica |
+| `ml-verify.ts` | Las reglas que deciden si dos fichas son el mismo producto |
+| `ml-verify-check.ts` | 40 casos de regresión de esas reglas. Correr antes de tocarlas |
+| `ml-recheck.ts` | Re-audita los matches guardados con las reglas nuevas, sin pegarle a la API |
+| `ml-apply-images.ts` | Sube las fotos a Cloudinary y las asocia. Máximo 6 por producto |
+| `ml-report.ts` | Regenera `progress.md`. No editarlo a mano |
 
 Todos son re-ejecutables. `import-stock.ts` es también el camino para
 refrescar precios y stock cuando llega una planilla nueva.
@@ -401,9 +408,13 @@ de cruce independientes (código de fábrica y EAN) y una valida a la otra.
 3. Specs de Bosch, Rutmann, Lusqtoff, DeWALT, PZ Force, GD Tools.
 4. **Descripciones**: redactarlas a partir de las specs ya verificadas, sin
    agregar ningún dato nuevo. Es reformulación, no generación.
-5. **Imágenes**: 769 productos ya tienen fotos (vía MercadoLibre). Faltan
-   los 974 restantes, que no tienen SKU en formato EAN y por eso no se
-   pueden cruzar contra ML. Su única vía son los catálogos de marca.
+5. **Imágenes**: 809 productos ya tienen fotos (vía MercadoLibre): 769 por
+   cruce de EAN y 40 más por match de nombre/código de fábrica. Faltan 935,
+   que representan el **72% del valor del inventario** — lo que se fotografió
+   es mayormente la cola barata. El match por nombre está agotado: de 699
+   productos verificables solo 45 pasaron las reglas (6%). La vía que queda
+   es pedir los packs de imágenes a los proveedores, empezando por Eurotech
+   (333 productos, $41,5M de inventario, ninguno con foto).
 6. Resolver los casos especiales de la lista de arriba.
 
 ---

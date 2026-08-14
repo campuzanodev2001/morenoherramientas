@@ -1,72 +1,72 @@
 # Enriquecimiento desde MercadoLibre
 
-Generado el 2026-08-14 15:35 por `scripts/ml-report.ts`.
+Generado el 2026-08-14 17:24 por `scripts/ml-report.ts`.
 No editar a mano: se regenera entero. La fuente es `data/ml-progress.jsonl`.
 
 ## Resumen
 
 | | Productos | |
 |---|---:|---:|
-| Procesados | 992 | |
-| Con ficha encontrada | 777 | 78% |
-| — con specs | 777 | 78% |
-| — con fotos | 769 | 78% |
-| — con descripción | 748 | 75% |
-| Sin ficha | 215 | 22% |
+| Procesados | 1574 | |
+| Con ficha encontrada | 822 | 52% |
+| — con specs | 777 | 49% |
+| — con fotos | 809 | 51% |
+| — con descripción | 748 | 48% |
+| Sin ficha | 752 | 48% |
 
-Specs disponibles: **9372** · fotos disponibles: **2770**
+Specs disponibles: **9372** · fotos disponibles: **2914**
 
 ## Aplicado a la tienda
 
 - Contenido (specs + descripción) escrito en la DB: **777**
-- Imágenes subidas a Cloudinary y asociadas: **769**
+- Imágenes subidas a Cloudinary y asociadas: **809**
 
 ## Por qué falló
 
 | Motivo | Productos |
 |---|---:|
-| el EAN no existe en el catálogo de ML | 155 |
-| hubo N resultado(s) pero ninguno con GTIN igual al SKU | 40 |
-| GTIN coincide pero la marca no: nuestra "Bremen", ML "Wembley" | 4 |
-| GTIN coincide pero la marca no: nuestra "Siloc", ML "WN" | 2 |
-| GTIN coincide pero la marca no: nuestra "DeWALT", ML "Black Jack" | 2 |
-| GTIN coincide pero la marca no: nuestra "Anaerobicos S.R.L", ML "Trabasil" | 1 |
-| GTIN coincide pero la marca no: nuestra "Siloc", ML "ZC" | 1 |
-| GTIN coincide pero la marca no: nuestra "Anaerobicos S.R.L", ML "Siloc" | 1 |
-| GTIN coincide pero la marca no: nuestra "Tyt", ML "Laffite" | 1 |
-| GTIN coincide pero la marca no: nuestra "Bremen", ML "SM" | 1 |
-| GTIN coincide pero la marca no: nuestra "Bremen", ML "Aceros Lomas" | 1 |
-| GTIN coincide pero la marca no: nuestra "Bremen", ML "Irimo" | 1 |
+| el EAN no existe en el catálogo de ML | 70 |
+| [nombre] N candidato(s), ninguno válido: nuestro nombre no tiene ninguna dimensión que permita validar | 38 |
+| [nombre] N candidato(s), ninguno válido: diferencia en mm: nuestro N contra ML (no dice) | 23 |
+| [nombre] N candidato(s), ninguno válido: variante largo distinta: nuestro (no dice) contra ML largo | 20 |
+| hubo N resultado(s) pero ninguno con GTIN igual al SKU | 18 |
+| [nombre] N candidato(s), ninguno válido: marca distinta: nuestra "Rutmann", ML "Ruhlmann" | 14 |
+| [nombre] N candidato(s), ninguno válido: marca distinta: nuestra "Dorrego", ML "Imbra" | 13 |
+| [nombre] N candidato(s), ninguno válido: marca distinta: nuestra "Eurotech", ML "Bodegas Mumm" | 12 |
+| [nombre] N candidato(s), ninguno válido: el nuestro es una unidad suelta y la ficha es un juego | 12 |
+| [nombre] N candidato(s), ninguno válido: variante color distinta: nuestro (no dice) contra ML gris | 12 |
+| [nombre] N candidato(s), ninguno válido: marca distinta: nuestra "DeWALT", ML "Wembley" | 10 |
+| [nombre] N candidato(s), ninguno válido: la ficha de ML no declara marca | 10 |
 
 ## Por marca
 
 | Marca | Procesados | Con ficha | Con fotos |
 |---|---:|---:|---:|
-| Bremen | 459 | 432 | 432 |
-| Bosch | 103 | 66 | 64 |
-| Lusqtoff | 72 | 63 | 62 |
-| DeWALT | 60 | 50 | 50 |
-| GD Tools | 55 | 0 | 0 |
+| Bremen | 486 | 441 | 440 |
+| Eurotech | 317 | 21 | 18 |
+| Bosch | 103 | 71 | 69 |
+| Rutmann | 73 | 0 | 0 |
+| Lusqtoff | 72 | 65 | 63 |
+| DeWALT | 61 | 50 | 50 |
+| GD Tools | 57 | 0 | 0 |
+| Davidson | 29 | 0 | 0 |
+| Omaha | 22 | 14 | 13 |
+| PZ Force | 21 | 0 | 0 |
+| Rucci | 21 | 2 | 2 |
 | Gamma | 19 | 19 | 19 |
-| Omaha | 19 | 14 | 13 |
+| Stanley | 18 | 8 | 8 |
 | (sin marca) | 18 | 15 | 15 |
 | EMTOP | 18 | 10 | 9 |
-| Eurotech | 16 | 0 | 0 |
 | Siloc | 16 | 13 | 13 |
 | WADFOW | 15 | 11 | 10 |
 | INGCO | 15 | 11 | 11 |
-| Stanley | 12 | 8 | 8 |
+| Crossmaster | 13 | 3 | 3 |
+| Dorrego | 13 | 0 | 0 |
+| 3M | 11 | 3 | 3 |
 | Wembley | 10 | 10 | 9 |
-| Trabasil | 5 | 5 | 5 |
-| 3M | 4 | 3 | 3 |
-| Anaerobicos S.R.L | 4 | 0 | 0 |
-| Total | 4 | 4 | 4 |
-| CAT | 3 | 2 | 2 |
-| Autel | 3 | 0 | 0 |
-| Guiller | 3 | 2 | 2 |
-| Sika | 3 | 2 | 2 |
-| Dowen Pagio | 3 | 3 | 3 |
-| Loctite | 3 | 2 | 1 |
+| Argentec | 8 | 0 | 0 |
+| Bemar | 7 | 0 | 0 |
+| Ezeta | 7 | 0 | 0 |
 
 ## Revisar a mano
 
