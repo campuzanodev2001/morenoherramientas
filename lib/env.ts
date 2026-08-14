@@ -61,6 +61,13 @@ const serverSchema = z.object({
   CLOUDINARY_API_KEY: z.string().min(1),
   CLOUDINARY_API_SECRET: z.string().min(1),
 
+  // MercadoLibre — solo las usan los scripts de catálogo (scripts/ml-*.ts) para
+  // leer la API de fichas de producto. La app en runtime no las necesita, así
+  // que son opcionales: sin ellas el sitio arranca igual y solo fallan los
+  // scripts, con un mensaje explícito.
+  ML_CLIENT_ID: z.string().min(1).optional().catch(undefined),
+  ML_CLIENT_SECRET: z.string().min(1).optional().catch(undefined),
+
   // Rate limiting
   UPSTASH_REDIS_URL: z.url(),
   UPSTASH_REDIS_TOKEN: z.string().min(1),

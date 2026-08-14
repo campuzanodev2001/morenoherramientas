@@ -1,208 +1,119 @@
-# Progreso de implementación — Moreno Herramientas
+# Enriquecimiento desde MercadoLibre
 
-> Estado del backend de producción definido en `CLAUDE.md` y los docs `01-08`.
-> Punto de partida: prototipo 100% frontend (catálogo estático en `lib/products.ts`,
-> carrito en localStorage, admin en sessionStorage con password hardcodeada,
-> checkout local sin pago real, sin ninguna dependencia de backend instalada).
->
-> Seguimiento detallado feature por feature en `feature_list.json`.
-> Última actualización (30 jun 2026): todas las features en `DONE`; arrancó la **puesta
-> a punto para producción** — credenciales reales cargadas en `.env.local` (Supabase,
-> Cloudinary, Resend, Upstash, Sentry, Axiom), finalización del setup de Sentry y fix de
-> CSP en `middleware.ts` para que carguen los íconos de Google Fonts. Detalle en `info.md`
-> (Etapa 3) y checklist operativo en `todo.md`. `tsc --noEmit` en verde.
-
----
+Generado el 2026-08-14 15:35 por `scripts/ml-report.ts`.
+No editar a mano: se regenera entero. La fuente es `data/ml-progress.jsonl`.
 
 ## Resumen
 
-| Bloque | Estado |
-|---|---|
-| Infraestructura (env, errores, rate limit, middleware, observabilidad) | ✅ Completo |
-| Base de datos (schemas + queries) | ✅ Completo |
-| Autenticación + uploads | ✅ Completo |
-| Panel admin sobre DB (auth, productos, dashboard, categorías, banners, hero/secciones) | ✅ Completo |
-| Búsqueda fuzzy pg_trgm (API + página) | ✅ Completo |
-| Catálogo público UI sobre DB (home/categoría/producto/buscar) | ✅ Completo |
-| Carrito (DB para logueados + localStorage/cookie anónimo, merge al loguearse, CartDrawer) | ✅ Completo (CART-01) |
-| Checkout multi-paso + cotización de envíos (Andreani + Correo) | ✅ Completo (CHECKOUT-01, SHIP-01) |
-| MercadoPago: preferencia + Bricks + webhook + orden + cron | ✅ Completo (PAY-01..05) |
-| Mails transaccionales con idempotencia (Resend) | ✅ Completo (MAIL-01) |
-| Panel de órdenes + transiciones de estado | ✅ Completo (ADMIN-06) |
-| Cuenta del cliente (perfil + órdenes) | ✅ Completo (ACCOUNT-01/02) |
-| Importación / SEO / deploy | ✅ Completo (LAUNCH-01..03) |
-| Hardening TypeScript estricto | ✅ Completo (QUALITY-01) |
+| | Productos | |
+|---|---:|---:|
+| Procesados | 992 | |
+| Con ficha encontrada | 777 | 78% |
+| — con specs | 777 | 78% |
+| — con fotos | 769 | 78% |
+| — con descripción | 748 | 75% |
+| Sin ficha | 215 | 22% |
 
-> **Todas las features de `feature_list.json` están en `DONE`.**
+Specs disponibles: **9372** · fotos disponibles: **2770**
 
-**Completadas: 17 features** (INFRA-02..07, DB-01/02, AUTH-01/02, CLOUD-01, ADMIN-AUTH/01..05, SEARCH-01).
-Todas compilan, pasan `next build` y están commiteadas una por una (`feat: ...`).
+## Aplicado a la tienda
 
-### Nota sobre el panel admin (commits posteriores)
-Se migró `/admin` de localStorage/sessionStorage a DB:
-- Auth real con NextAuth `requireRole('admin')` (eliminada la password hardcodeada).
-- Productos: listado con filtros, toggle activo, form con Cloudinary firmado, specs, slug único, Server Actions.
-- Dashboard con métricas reales; categorías (árbol 2 niveles, borrado bloqueado); banners (scheduling); hero/secciones persistidos en `pages`.
-- El storefront (home) sigue leyendo de `AdminContext`/estático hasta CAT; por eso los cambios del admin todavía no se reflejan en la home (no rompe nada, es interino).
+- Contenido (specs + descripción) escrito en la DB: **777**
+- Imágenes subidas a Cloudinary y asociadas: **769**
 
-### Nota sobre búsqueda (SEARCH-01)
-API `/api/productos/buscar` con pg_trgm + índice GIN ya funcionando. La página `/buscar` se reconectará al API durante la migración de UI del catálogo.
+## Por qué falló
 
----
+| Motivo | Productos |
+|---|---:|
+| el EAN no existe en el catálogo de ML | 155 |
+| hubo N resultado(s) pero ninguno con GTIN igual al SKU | 40 |
+| GTIN coincide pero la marca no: nuestra "Bremen", ML "Wembley" | 4 |
+| GTIN coincide pero la marca no: nuestra "Siloc", ML "WN" | 2 |
+| GTIN coincide pero la marca no: nuestra "DeWALT", ML "Black Jack" | 2 |
+| GTIN coincide pero la marca no: nuestra "Anaerobicos S.R.L", ML "Trabasil" | 1 |
+| GTIN coincide pero la marca no: nuestra "Siloc", ML "ZC" | 1 |
+| GTIN coincide pero la marca no: nuestra "Anaerobicos S.R.L", ML "Siloc" | 1 |
+| GTIN coincide pero la marca no: nuestra "Tyt", ML "Laffite" | 1 |
+| GTIN coincide pero la marca no: nuestra "Bremen", ML "SM" | 1 |
+| GTIN coincide pero la marca no: nuestra "Bremen", ML "Aceros Lomas" | 1 |
+| GTIN coincide pero la marca no: nuestra "Bremen", ML "Irimo" | 1 |
 
-## Lo que se hizo
+## Por marca
 
-### INFRA-02 — Validación de variables de entorno (`lib/env.ts`)
-Schema Zod que valida todas las env vars. Se separan dos objetos:
-- `env` → variables del **servidor** (validación lazy vía Proxy; lanza si se importa desde el cliente).
-- `clientEnv` → variables públicas `NEXT_PUBLIC_*` (referenciadas estáticamente para que Next las inline).
+| Marca | Procesados | Con ficha | Con fotos |
+|---|---:|---:|---:|
+| Bremen | 459 | 432 | 432 |
+| Bosch | 103 | 66 | 64 |
+| Lusqtoff | 72 | 63 | 62 |
+| DeWALT | 60 | 50 | 50 |
+| GD Tools | 55 | 0 | 0 |
+| Gamma | 19 | 19 | 19 |
+| Omaha | 19 | 14 | 13 |
+| (sin marca) | 18 | 15 | 15 |
+| EMTOP | 18 | 10 | 9 |
+| Eurotech | 16 | 0 | 0 |
+| Siloc | 16 | 13 | 13 |
+| WADFOW | 15 | 11 | 10 |
+| INGCO | 15 | 11 | 11 |
+| Stanley | 12 | 8 | 8 |
+| Wembley | 10 | 10 | 9 |
+| Trabasil | 5 | 5 | 5 |
+| 3M | 4 | 3 | 3 |
+| Anaerobicos S.R.L | 4 | 0 | 0 |
+| Total | 4 | 4 | 4 |
+| CAT | 3 | 2 | 2 |
+| Autel | 3 | 0 | 0 |
+| Guiller | 3 | 2 | 2 |
+| Sika | 3 | 2 | 2 |
+| Dowen Pagio | 3 | 3 | 3 |
+| Loctite | 3 | 2 | 1 |
 
-Si falta una variable o tiene formato inválido, la app no arranca y muestra cuáles fallaron.
-Se crearon `.env.example` (documentado, versionado) y `.env.local` (placeholders para dev/build, gitignoreado).
-**Verificado:** rechaza vars faltantes y parsea las válidas.
+## Revisar a mano
 
-### INFRA-03 / INFRA-04 — Sistema de errores (`lib/errors`)
-- `index.ts`: jerarquía `AppError` + `ValidationError`, `AuthError`, `AuthorizationError`, `NotFoundError`, `RateLimitError`, `PaymentError`, `ShippingError`, cada uno con `code`, `statusCode`, `isOperational`.
-- `handlers.ts`: `handleApiError` (operacionales → su statusCode; no operacionales → 500 genérico + Sentry) y `handleServerActionError`.
-- `validation.ts`: `formatZodError` + `parseOrThrow`.
-- `mp-error-messages.ts`: mapa completo de códigos de MercadoPago → mensajes en español, con `getMpErrorMessage(code)`.
+Productos cuyo EAN devolvió más de una ficha del catálogo. Se eligió la más completa, pero conviene mirarlos.
 
-### INFRA-05 / INFRA-06 — Rate limiting + middleware
-- `lib/rate-limit/index.ts`: sliding window con Upstash, constantes `RATE_LIMITS` (LOGIN, CHECKOUT, API_PUBLIC, WEBHOOK, SEARCH), `getClientIp` (primera IP de `X-Forwarded-For`).
-- `lib/rate-limit/with-rate-limit.ts`: wrapper para API routes que responde 429 con `Retry-After`.
-- `middleware.ts`: rate limiting `API_PUBLIC` a `/api/*` (excepto `/api/auth/*`), protección de `/cuenta/*`, security headers (X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy) y CSP que habilita Checkout Bricks de MP, Cloudinary y Google.
+| SKU | Nuestro nombre | Ficha elegida | Fichas |
+|---|---|---|---:|
+| `1210001969322` | Mate Stanley 236ml Rosa | Mate Termico 236ml Stanley Classic Inoxidable Sin Bpa Rosa Color Rosa claro Liso | 2 |
+| `3165140059084` | Broca 5mm en Espiral para Madera | Taladro para madera en espiral Bosch de 5 mm | 2 |
+| `3165140518543` | S Copa Bimetalica 76mm Ree A2 Bosch | Sierra Copa Bosch Bimetalica Hss 76 Mm | 2 |
+| `3165140568746` | Hoja de Calar Madera Bosch (Corte Limpio) - Blister x 5 Unidades | Hojas de sierra Tico Tico 2608667304 Bosch T101ao de 51 x 1,4 mm, 5 unidades | 2 |
+| `3165140568753` | Hoja de Calar Madera (Corte Limpio) - Blister x 5 Unidades | Set 5 Hojas De Calar Tipo T Bosch T101b 2608667305 | 2 |
+| `3165140568883` | Hojas para Caladora X5 Bosch para Chapas de Metal Muy Finas 36 Dientes | Hojas De Sierra Bosch Para Caladora - Set Recto - Metal | 2 |
+| `3165140880596` | Disco de Sierra Circular Eco1 Bosch 2608644331 | Disco De Sierra Circular Bosch Eco 184mm 60 Dientes Madera | 2 |
+| `4006825613704` | Pxc Starter Kit Bateria 4.0 AH + Cargador 18V Einhell | Sierra caladora industrial inalámbrica Einhell TE-JS 18 LI 4AH | 2 |
+| `4059952524771` | Disco de Corte 180x1.6mm Eco Bosch | Kit de discos de corte de metal Bosch de 7 x 1/16 pulgadas x 7/8 | 2 |
+| `4059952538754` | Mecha 10mm HEX-9 Multiconstruccion | Broca Multimaterial Multconstruction 10mm Bosch Hex9 | 2 |
+| `4059952542607` | Disco de Lija Expert C470 150mm P180 Bosch | Disco de lijado Expert C470, 150 mm, G180, 50, Bosch Gravel, cantidad 180 | 2 |
+| `6925582140064` | Tripode para Nivel Laser INGCO | Tripode 1,2m Aluminio Ingco Con Base Rosca Para Nivel Laser | 2 |
+| `6941640166333` | Set Repuesto Trincheta 10 Unidades 18mm INGCO | Repuesto Cartonero 10 Hojas Corta Carton Exacto 18mm Ingco | 2 |
+| `6943475863753` | Juego Puntas Atornillar 45 Pzas CAT | Set Puntas Impacto Cat 45 Pzs Con Estuche Plástico | 2 |
+| `6949509205810` | Mecha SDS PLUS-1 6X110 | Mecha Bosch Sds Plus 6 Mm 50 / 110 Mm Para Hormigon | 2 |
+| `6949509205896` | Mecha SDS PLUS-1 8X160 | Broca Widia Sds Plus 8 X 160 Mm - Bosch | 2 |
+| `6949509205926` | Mecha SDS PLUS-1 10X160 | Mecha Sds Plus-1 - 10 Mm X 160 Mm Bosch 2608680273 | 2 |
+| `6949509205964` | Mecha SDS PLUS-1 12X160 | Broca Bosch Sds Plus-1 de 2 filos con 2 filos Ø12x100x160 mm | 2 |
+| `7795163023890` | Calibre Digital Acero 150mm (Visor Plastico) Wembley | Calibre Digital Visor Plastico 150mm Con Estuche Wembley | 2 |
+| `7795163029144` | Aut.Compresometro 3 a 21kg/cm2 Bremen | Compresometro Bremen Motos Autos Profesional Nafta Cod. 2914 | 2 |
+| `7795163034759` | Bocallave Enc.1/2mm 23mm Est. CrVa Bremen | Bocallave Tubo Estriado Enc 23mm 1/2 Bremen 3475 Color Plateado | 2 |
+| `7795163034865` | Bocallave Enc.1/2SAE(12) 1/2 Est.CrVa Bremen | Tubo Bocallave Estriada 1/2 Encastre 1/2 Bremen 3486 Color Cromado | 2 |
+| `7795163035039` | Llave Combinada mm 6 Profesional Bremen | Llave Combinada Bremen 6 Mm Profesional Acero Cr-vanadio Cod. 3503 | 2 |
+| `7795163035053` | Llave Combinada mm 8 Profesional Bremen | Juego Llaves Combinadas Bremen 6mm A 13mm Cromo Vanadio | 2 |
+| `7795163035091` | Llave Combinada mm 12 Profesional Bremen | Llave Combinada M12 Profesional Bremen 3509 Plateado | 2 |
+| `7795163035107` | Llave Combinada mm 13 Profesional Bremen | Llave Combinada Bremen 13 Mm Profesional Acero Cr-vanadio Cod. 3510 Dgm | 2 |
+| `7795163035114` | Llave Combinada mm 14 Profesional Bremen | Llave Combinada Bremen 3511 Color Plateado Con Acabado Mate | 2 |
+| `7795163035251` | Llave COMB.SAE(11) 7/16PROFESIONAL Bremen® | Llave Combinada Bremen Sae 7/16 Profesional Otro | 2 |
+| `7795163035527` | Llave Combinada mm 24 Profesional Bremen | Set Juego 19 Llaves Combinada Acodada 6 A 24mm Taller Bremen | 2 |
+| `7795163036210` | Llave Combinada mm 32 Profesional Bremen | Set Juego 26 Llaves Combinada Acodada 6 A 32mm Taller Bremen | 2 |
+| `7795163037651` | Adaptador 1/4 Hembra x 3/8Macho CrVa Bremen | Adaptador Tubos 1/4 Hembra 3/8 Macho Cr-vanadio Bremen 3765 | 2 |
+| `7795163037668` | Adaptador 3/8Hembra x 1/4Macho CrVa Bremen | Adaptador Tubos 3/8 Hembra 1/4 Macho Bremen Bocallaves 3766 | 2 |
+| `7795163037675` | Adaptador 3/8Hembra x 1/2Macho CrVa Bremen | Adaptador Llave Tubo Bremen 3/8 Hembra - 1/2 Macho Cod. 3767 Dgm | 2 |
+| `7795163037699` | Adaptador 1/2Hembra x 3/4Macho CrVa Bremen | Adaptador Tubos Bocallave 1/2 Hembra 3/4 Macho Bremen 3769 | 2 |
+| `7795163037774` | Bocallave Enc.3/4 24mm Hex. CrVa Bremen | Llave Tubo Bremen 3777 Color Plateado Con Acabado Cromado | 2 |
+| `7795163038214` | Bocallave Enc.1/2 mm 12mm Hex. CrVa Bremen | Bocallave Enc.1/2 Mm 12mm Hex. Crva Bremen 3821 | 2 |
+| `7795163038245` | Bocallave Enc.1/2 mm 15mm Hex. CrVa Bremen | Llave Tubo Bocallave 15mm Encastre 1/2 Hexagonal Bremen 3824 | 2 |
+| `7795163038252` | Bocallave Enc.1/2 mm 16mm Hex. CrVa Bremen | 3825 Llave Tubo Bremen 16 Mm Enc 1/2 Hexagonal Corto | 2 |
+| `7795163038306` | Bocallave Enc.1/2 mm 21mm Hex. CrVa Bremen | Llave Tubo Bocallave 21mm Encastre 1/2 Hexagonal Bremen 3830 | 2 |
+| `7795163038344` | Bocallave Enc.1/2 mm 25mm Hex. CrVa Bremen | Llave Tubo 25 Mm Enc 1/2 Hexagonal Bremen 3834 Cromado | 2 |
 
-### INFRA-07 — Observabilidad (Sentry + Axiom)
-- Sentry 10: `sentry.server.config.ts`, `sentry.edge.config.ts`, `instrumentation-client.ts`, `instrumentation.ts` (con `onRequestError`), `withSentryConfig` en `next.config.ts`. `tracesSampleRate` 0.1 en prod / 1.0 en dev.
-- Axiom: `withAxiom` envuelve la config; captura automática de `console.*`.
-- `lib/logger`: `logInfo/Warn/Error` con contexto estructurado + `reportException` (import dinámico de Sentry para no inflar el bundle de edge). Inerte sin DSN.
+…y 42 más.
 
-### DB-01 — Schemas Drizzle + migración inicial
-16 tablas, cada una en su archivo en `lib/db/schemas/`: users, accounts, sessions, verification_tokens, categories, products, product_images, orders, order_items, payment_events, shipping_quotes, carts, cart_items, pages, banners, mail_logs.
-- IDs uuid generados con `crypto.randomUUID()`; dinero en `integer` (centavos); `updatedAt` con `$onUpdate`; soft delete (`deletedAt`) en users/products; `payment_events` append-only sin updatedAt.
-- `lib/db/index.ts` (cliente postgres-js serverless, `prepare:false` para el pooler de Supabase, cacheado en dev), `lib/db/types.ts` (tipos inferidos), `drizzle.config.ts`.
-- Migración `0000_initial.sql` generada.
-
-### DB-02 — Queries tipadas (`lib/db/queries`)
-- `products.ts`: `getProducts` (cursor, filtra `active && !deleted`), `getProductBySlug` (con imágenes y categoría), `getFeaturedProducts`, `decrementStock` (en transacción, desactiva al llegar a 0).
-- `categories.ts`: `getCategories` (árbol), `getCategoryBySlug` (con hijos directos).
-- `orders.ts`: `createOrder` (transacción, orderNumber `FE-AÑO-NNNN`), `updateOrderStatus` (valida transiciones), `getOrderById` (ownership), `getOrdersByUser` (cursor), tabla `VALID_TRANSITIONS`.
-- `cart.ts`: `getCart`, `addToCart`, `updateCartItem`, `removeCartItem`, `clearCart`, `mergeAnonymousCart`, todas con ownership y tope de stock.
-- `users.ts`: `getUserByEmailWithHash` (uso interno de auth), `getUserById` (sin passwordHash), `createCredentialsUser`, helpers de password.
-- `_cursor.ts`: paginación por cursor opaco sobre `(createdAt, id)`.
-
-### AUTH-01 / AUTH-02 — NextAuth v5 + helpers
-- `lib/auth/index.ts`: Google OAuth + Credentials + (invitado a nivel checkout), `DrizzleAdapter`, sesión JWT con `id` y `role`. Credentials con: rate limit LOGIN antes de cualquier query, `bcrypt.compare` siempre (hash dummy) para timing-safe, sin revelar si el email existe.
-- `lib/auth/helpers.ts`: `getServerSession`, `requireAuth`, `requireRole`, `isOwner`.
-- `lib/auth/actions.ts`: `registerUser` (bcrypt 12 rounds).
-- `app/api/auth/[...nextauth]/route.ts`, páginas `/login` y `/registro` (Server Component + form Client con validación Zod inline, error por campo, loading en submit, botón de Google).
-- `lib/validations/auth.ts`: schemas login/registro/cambio-password compartidos.
-
-### CLOUD-01 — Uploads firmados a Cloudinary
-- `lib/cloudinary/sign.ts`: firma sha1 con el API secret (solo servidor).
-- `app/api/admin/cloudinary/sign/route.ts`: POST con rate limiting + `requireRole('admin')`; devuelve `{ signature, timestamp, folder, cloudName, apiKey }`. Nunca expone el secret.
-- `lib/cloudinary/transforms.ts`: `transforms` (thumbnail/card/gallery/zoom) + `cloudinaryUrl()`.
-
----
-
-## Decisiones tomadas
-
-1. **Orden de trabajo por dependencias** (no por orden de los docs): primero todo lo que no requiere UI ni credenciales externas para verificarse (errores → env → DB → rate limit → auth), siguiendo el espíritu del `INDEX.md`. Cada feature se verifica con `tsc --noEmit` y, en los hitos, con `next build`.
-
-2. **Tablas de NextAuth agregadas al modelo:** `accounts` y `verification_tokens` no estaban en `01-database.md` pero el `DrizzleAdapter` las requiere para Google OAuth. Se agregaron como infraestructura.
-
-3. **`sessions` con `sessionToken` como PK** (en vez de `id` uuid PK como decía el doc): es la forma que exige el tipo del `DrizzleAdapter`. Con estrategia JWT esta tabla casi no se usa, así que el desvío no tiene impacto funcional.
-
-4. **Columna `specs jsonb` agregada a `products`:** el modelo de datos no la listaba, pero el formulario de admin (`03-catalog.md`) exige especificaciones técnicas key/value. Sin esa columna la feature de admin no se podría cumplir.
-
-5. **`tsconfig` se mantiene como está por ahora:** los flags estrictos extra de `CLAUDE.md` (`noUncheckedIndexedAccess`, `noImplicitReturns`, `exactOptionalPropertyTypes`) romperían el prototipo existente con decenas de errores. Se activan al final en **QUALITY-01**, limpiando todo de una vez. El código nuevo ya se escribe como si estuvieran activos (indexado defensivo).
-
-6. **Rate limiting fail-open en desarrollo:** con la URL placeholder de Upstash en `.env.local`, el limiter se desactiva para no agregar latencia ni romper el dev server; ante errores de red también falla abierto y loggea un warning. En producción (URL real) queda activo.
-
-7. **Sentry/Axiom inertes sin credenciales:** los `init` están guardados por presencia de DSN, así que en dev no intentan enviar nada y el build no falla por falta de tokens.
-
-8. **Páginas en rutas planas** (`/login`, `/registro`) en vez de los route groups `(auth)` que sugería el doc: el proyecto real ya usa rutas planas (`/carrito`, `/checkout`, `/buscar`), así que se respeta la convención existente del código por encima de la estructura idealizada.
-
----
-
-## Problemas encontrados y soluciones
-
-1. **`tsx` no cargaba `.env.local` en el smoke test de env.**
-   El test inicial falló porque las vars no estaban en el entorno. Solución: ejecutar con `npx tsx --env-file=.env.local`. Confirmó que la validación funciona (rechaza faltantes, parsea válidas).
-
-2. **Augmentación de tipos de NextAuth: `module 'next-auth/jwt' cannot be found`.**
-   Con `moduleResolution: "bundler"`, `next-auth/jwt` no está en el mapa de `exports` del paquete aunque el archivo exista. Solución: augmentar `@auth/core/jwt` (el módulo real donde vive la interfaz `JWT`). Las props `id`/`role` se propagan a los callbacks.
-
-3. **`DrizzleAdapter` rechazaba la tabla `sessions`** (`isPrimaryKey: false` en `sessionToken`).
-   El tipo del adapter exige `sessionToken` como primary key. Solución: rediseñar `sessions` a la forma estándar (sessionToken PK, sin `id` uuid) y regenerar la migración. Ver decisión #3.
-
-4. **`crypto.randomUUID()` y `Error.captureStackTrace`** podían no existir en todos los runtimes.
-   Se usan con optional chaining / asumiendo Node 26 (presente en el entorno). En edge, `crypto` global existe.
-
-5. **Riesgo de inflar el bundle de edge con Sentry** (el logger lo importa y el middleware importa el logger indirectamente).
-   Solución: `reportException` hace `import('@sentry/nextjs')` dinámico, así Sentry no entra estáticamente en el bundle de edge.
-
----
-
-## Lo que falta hacer (y por qué todavía no)
-
-> Razón transversal: de acá en adelante **todas** las features tocan la UI del
-> prototipo (que hoy usa datos estáticos, `id` numérico en URLs y precios como
-> string) y la migran a la DB real. Es un refactor grande y se hace por capas,
-> de abajo (datos/servidor, ya listo) hacia arriba (UI). Por eso primero se
-> construyó toda la base y recién ahora se ataca la UI.
-
-### ADMIN-01..05 — Panel admin sobre DB (`pending`)
-Migrar `/admin` de `AdminContext` (localStorage) a la DB con Server Actions protegidas por `requireRole('admin')`: listado/alta/edición de productos con upload a Cloudinary y specs key/value, dashboard con métricas reales, categorías (árbol 2 niveles), banners (CRUD + scheduling), hero/secciones persistidos.
-**Por qué no aún:** depende de DB-02 y CLOUD-01 (ya listos) y de reemplazar el `AdminContext` actual; es la primera feature de UICon escritura a DB, se hace ahora que la base está completa.
-
-### CAT-02..05 + SEARCH-01 — Catálogo público + búsqueda (`pending`)
-Home/categoría/producto leyendo de la DB con ISR (`revalidate 300`), `generateStaticParams`, `generateMetadata`, structured data `Product`, URLs por slug (hoy son por `id`), skeletons y `loading/error/not-found` por segmento. Búsqueda fuzzy con `pg_trgm` vía `GET /api/productos/buscar` (hoy es client-side sobre el array estático).
-**Por qué no aún:** requiere migrar las páginas del storefront a Server Components con DB y crear la extensión `pg_trgm` + índice en una migración. Es el segundo gran bloque de UI.
-
-### CART-01 + CHECKOUT-01 + SHIP-01 — Carrito DB, checkout, envíos (`pending`)
-Carrito en DB para logueados (Server Actions + SWR) y localStorage para anónimos, con **merge al loguearse** (queda enganchado acá: el callback `signIn` no puede leer localStorage, así que el merge se dispara client-side post-login con `mergeAnonymousCart`, que ya existe). Checkout de 4 pasos con estado en sessionStorage. Cotización real de envíos (`/api/envios/cotizar`) en paralelo a Andreani + Correo Argentino con expiración 30 min.
-**Por qué no aún:** depende del catálogo público (para agregar al carrito desde fichas reales) y de credenciales de los carriers; el flujo de checkout alimenta directamente a PAY.
-
-### PAY-01..05 — MercadoPago + webhook (`pending`)
-`create-preference` (12 pasos, recálculo de precios en servidor), Checkout Bricks embebido, **webhook idempotente** (firma → payment_events → idempotencia → consulta a MP → transacción con descuento de stock → 200 siempre), página de resultado de orden, cron de cancelación con `CRON_SECRET`, `vercel.json`.
-**Por qué no aún:** es el corazón del sistema y depende de checkout (CART/CHECKOUT) y de los mails; además necesita credenciales reales de MP para probarse end-to-end. Se deja para después de tener el flujo de compra armado.
-
-### MAIL-01 — Mails transaccionales (`pending`)
-`sendMail` idempotente (tabla `mail_logs`), 5 templates React Email (OrderConfirmation, OrderShipped, OrderDelivered, PaymentFailed, WelcomeEmail), funciones dispatch, y hooks en webhook / `signIn` / Server Actions del admin. El **WelcomeEmail** queda enganchado en el `events.createUser` ya presente en `lib/auth/index.ts`.
-**Por qué no aún:** los disparadores viven en el webhook (PAY) y en el panel de órdenes (ADMIN-06), que todavía no existen. Conviene construir el sistema de mail cuando ya estén los puntos donde se invoca.
-
-### ADMIN-06 — Panel de órdenes + transiciones (`pending`)
-Listado/detalle de órdenes, timeline, historial de `payment_events`, Server Actions `markAsProcessing/Shipped/Delivered/cancelOrder` con validación de transiciones (ya está `VALID_TRANSITIONS` en queries) y logging.
-**Por qué no aún:** necesita órdenes reales generadas por el checkout + webhook (PAY) para tener algo que gestionar; dispara OrderShipped/Delivered (MAIL-01).
-
-### ACCOUNT-01/02 — Cuenta del cliente (`pending`)
-`/cuenta/perfil` (editar nombre, email no editable para usuarios Google, cambio de password timing-safe sin enumeración) y `/cuenta/ordenes` + detalle con ownership estricto (`notFound()` si la orden no es del usuario).
-**Por qué no aún:** la sección de órdenes necesita órdenes reales (PAY); las queries (`getOrdersByUser`, `getOrderById`) y los helpers de auth ya están listos, así que es relativamente directo una vez que haya datos.
-
-### LAUNCH-01..03 — Importación masiva, SEO, auditoría/deploy (`pending`)
-Scripts `generate-categories.ts` + `import-products.ts` (parseo del Excel, categorización por keywords, upsert por SKU en lotes), `sitemap.ts`/`robots.ts`, structured data, checklist de seguridad completo, `vercel.json` (cron + timeout webhook), README.
-**Por qué no aún:** la importación llena la DB que consume el catálogo (CAT) y el SEO depende de que las páginas de producto/categoría existan; la auditoría se corre al final, cuando todos los endpoints están implementados.
-
-### QUALITY-01 — TypeScript estricto total + UX transversal (`in progress`)
-Activar `noUncheckedIndexedAccess`, `noImplicitReturns`, `exactOptionalPropertyTypes` en `tsconfig` y limpiar todos los errores que aparezcan; revisar Server Components por defecto, skeletons en Suspense y errores siempre visibles.
-**Por qué no aún:** activar los flags ahora rompería el prototipo existente con muchos errores en archivos que igual se van a reescribir. Se deja para el cierre, cuando la UI ya esté migrada, y se limpia todo de una sola pasada.
-
----
-
-## Cómo verificar el estado actual
-
-```bash
-# Tipos
-npx tsc --noEmit
-
-# Build completo (incluye middleware, rutas de auth, instrumentación)
-npx next build
-
-# Regenerar migración desde los schemas
-node --env-file=.env.local node_modules/.bin/drizzle-kit generate --name=initial
-```
-
-> Nota: `.env.local` tiene valores placeholder. Para conectar servicios reales
-> (DB, MP, Cloudinary, Upstash, Resend, carriers, Google OAuth, Sentry/Axiom)
-> hay que reemplazarlos por credenciales reales — ver `.env.example`.
