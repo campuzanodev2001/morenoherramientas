@@ -10,6 +10,8 @@
     "ml:fetch": "tsx --env-file=.env.local scripts/ml-fetch.ts",
     "ml:apply-content": "tsx --env-file=.env.local scripts/ml-apply-content.ts",
     "ml:apply-images": "tsx --env-file=.env.local scripts/ml-apply-images.ts",
+    "ml:match-names": "tsx --env-file=.env.local scripts/ml-match-names.ts",
+    "ml:verify-check": "tsx scripts/ml-verify-check.ts",
     "ml:report": "tsx scripts/ml-report.ts"
   },
   "dependencies": {

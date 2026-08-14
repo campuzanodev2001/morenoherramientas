@@ -22,6 +22,19 @@ export type FieldState =
   | { status: 'DONE'; count: number }
   | { status: 'FAILED'; reason: string }
 
+/**
+ * Cómo se probó que la ficha de ML es del mismo producto.
+ *
+ * `ean`    → el GTIN de la ficha es igual al SKU. Prueba directa.
+ * `codigo` → el SKU es el código de fábrica y aparece en el título o en el
+ *            modelo de la ficha. También es un identificador leído de las dos
+ *            fuentes, no un parecido: la confianza es equiparable a `ean`.
+ * `nombre` → no hay identificador que cruzar: se validó por marca + tipo +
+ *            dimensiones del nombre. Es evidencia circunstancial, más débil, y
+ *            por eso queda registrada pieza por pieza en `evidence`.
+ */
+export type MatchMethod = 'ean' | 'codigo' | 'nombre'
+
 export type MatchState =
   | {
       status: 'DONE'
@@ -30,6 +43,10 @@ export type MatchState =
       permalink: string | null
       /** Cuántas fichas del catálogo tenían este mismo GTIN. */
       candidates: number
+      /** Ausente en los registros viejos, que son todos por EAN. */
+      method?: MatchMethod
+      /** Qué coincidió, para poder auditar un match por nombre sin reprocesar. */
+      evidence?: string[]
     }
   | { status: 'FAILED'; reason: string }
 
