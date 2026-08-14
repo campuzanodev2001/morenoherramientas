@@ -244,7 +244,7 @@ disponibles en el plan Free de Supabase.
 1743 con descripción (100%)
 1713 con al menos una spec · 904 con 3 o más · promedio 2,95
   30 sin ninguna spec  ← sin marca y sin dato técnico en ninguna fuente
-   0 imágenes          ← pendiente
+ 769 con imágenes      ← 2770 fotos de ML, máximo 6 por producto
    2 inactivos         ← margen cero, esperando confirmación del cliente
 ```
 
@@ -401,7 +401,9 @@ de cruce independientes (código de fábrica y EAN) y una valida a la otra.
 3. Specs de Bosch, Rutmann, Lusqtoff, DeWALT, PZ Force, GD Tools.
 4. **Descripciones**: redactarlas a partir de las specs ya verificadas, sin
    agregar ningún dato nuevo. Es reformulación, no generación.
-5. **Imágenes**: el catálogo se publica hoy sin una sola foto.
+5. **Imágenes**: 769 productos ya tienen fotos (vía MercadoLibre). Faltan
+   los 974 restantes, que no tienen SKU en formato EAN y por eso no se
+   pueden cruzar contra ML. Su única vía son los catálogos de marca.
 6. Resolver los casos especiales de la lista de arriba.
 
 ---
